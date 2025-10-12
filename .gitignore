@@ -46,7 +46,12 @@ package-lock.json
 # ============================================
 # Database
 # ============================================
+# Ignore all SQL files EXCEPT the schema
 *.sql
+!database/schema.sql
+!database/seed.sql
+
+# SQLite databases
 *.sqlite
 *.db
 
