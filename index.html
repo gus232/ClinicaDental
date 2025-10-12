@@ -1,0 +1,320 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Clínica Dental Muelitas</title>
+    <link href="https://fonts.googleapis.com/css?family=Ropa+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/responsiveslides.css">
+    <style>
+        body {
+            font-family: 'Ropa Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #007bff;
+        }
+        .login-container .form-group {
+            margin-bottom: 20px;
+        }
+        .login-container .btn-primary {
+            width: 100%;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .login-container .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004a99;
+        }
+        .login-container .text-danger {
+            margin-top: 10px;
+        }
+        .login-container .text-center {
+            margin-top: 20px;
+        }
+        .login-container .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .login-container .logo img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .header {
+            background-color: #eef4ef;
+            padding: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .wrap {
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo img {
+            width: 80px;
+            height: auto;
+        }
+
+        .logo a {
+            font-size: 36px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #0a0a0a;
+            margin-left: 20px;
+        }
+
+        .top-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .top-nav ul li {
+            margin-left: 20px;
+        }
+
+        .top-nav ul li a {
+            text-decoration: none;
+            color: #0a0a0a;
+            font-size: 18px;
+        }
+
+        .top-nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        .image-slider {
+            position: relative;
+            max-height: 600px;
+            overflow: hidden;
+        }
+
+        .rslides li img {
+            width: 100%;
+            max-height: 600px;
+            object-fit: cover;
+        }
+
+        .description-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .description-overlay h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .description-overlay p {
+            font-size: 24px;
+        }
+
+        .content-grids {
+            padding: 40px 0;
+        }
+
+        .listview_1_of_3 {
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        .listimg {
+            flex: 1;
+        }
+
+        .listimg img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .text {
+            flex: 2;
+            padding-left: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .text h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .text p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .button span a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .button span a:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            background-color: #2e38f7;
+            padding: 20px 0;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 -4px 8px rgba(0,0,0,0.1);
+        }
+
+        .footer-left {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-left ul {
+            display: flex;
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-left ul li {
+            margin-right: 20px;
+        }
+
+        .footer-left ul li a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .footer-left ul li a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-left .button span a {
+            background-color: #fff;
+            color: #4CAF50;
+            padding: 10px 20px;
+        }
+
+        .footer-left .button span a:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="js/responsiveslides.min.js"></script>
+    <script>
+        $(function () {
+            // Slideshow 1
+            $("#slider1").responsiveSlides({
+                maxwidth: 1600,
+                speed: 600
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="wrap">
+            <div class="logo">
+                <div style="display: flex; align-items: center;">
+                    <img src="images/MUELITAS.jpg" alt="Clínica Dental Muelitas">
+                    <a href="index.html">Clínica Dental Muelitas</a>
+                </div>
+                <div class="top-nav">
+                    <ul>
+                        <li class="active"><a href="index.html">Inicio</a></li>
+                        <li><a href="contact.php">Contacto</a></li>
+                        <li><a href="hms/login.php">iniciar sesion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="image-slider">
+        <ul class="rslides" id="slider1">
+            <li><img src="images/dental1.jpg" alt="">
+                <div class="description-overlay">
+                    <h2>¡Bienvenidos a Clínica Dental Muelitas!</h2>
+                    <p>Somos una clínica dental dedicada a proporcionar servicios de odontología de alta calidad para toda la familia. Nuestro equipo de profesionales altamente cualificados se esfuerza por ofrecer atención personalizada y efectiva para mantener la salud bucal de nuestros pacientes.</p>
+                </div>
+            </li>
+            <li><img src="images/dental2.jpg" alt="">
+                <div class="description-overlay">
+                    <h2>¡Bienvenidos a Clínica Dental Muelitas!</h2>
+                    <p>Somos una clínica dental dedicada a proporcionar servicios de odontología de alta calidad para toda la familia. Nuestro equipo de profesionales altamente cualificados se esfuerza por ofrecer atención personalizada y efectiva para mantener la salud bucal de nuestros pacientes.</p>
+                </div>
+            </li>
+            <li><img src="images/dental3.jpg" alt="">
+                <div class="description-overlay">
+                    <h2>¡Bienvenidos a Clínica Dental Muelitas!</h2>
+                    <p>Somos una clínica dental dedicada a proporcionar servicios de odontología de alta calidad para toda la familia. Nuestro equipo de profesionales altamente cualificados se esfuerza por ofrecer atención personalizada y efectiva para mantener la salud bucal de nuestros pacientes.</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="clear"></div>
+    <div class="content-grids">
+        <div class="wrap">
+            <div class="section group">                             
+                <div class="listview_1_of_3 images_1_of_3">
+                    <div class="listimg listimg_1_of_2">
+                          <img src="images/grid-img3.png" alt="Pacientes">
+                    </div>
+                    <div class="text list_1_of_2">
+                          <h3>Pacientes</h3>
+                          <p>Regístrate y reserva tu cita</p>
+                          <div class="button"><span><a href="hms/login.php">Haz clic aquí</a></span></div>
+                    </div>
+                </div>   
+            </div>
+        </div>
+    </div>
+    
+    <div class="clear"></div>
+    <div class="footer">
+        <div class="wrap">
+            <div class="footer-left">
+                <ul>
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="contact.php">Contacto</a></li>
+                    <li><a href="hms/login.php">Pacientes</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+# Hospital Management System - .gitignore
+
+# ============================================
+# PHP
+# ============================================
+*.log
+*.cache
+*.tmp
+
+# ============================================
+# Composer Dependencies
+# ============================================
+/hms/vendor/
+/hms/vendor1/
+composer.phar
+composer.lock
+
+# ============================================
+# Node Modules
+# ============================================
+/hms/node_modules/
+package-lock.json
+
+# ============================================
+# Backups
+# ============================================
+/hms/backups/*.sql
+/hms/backups/*.backup.*
+*.backup
+*.bak
+*.old
+
+# ============================================
+# Migration Scripts (opcional - descomenta si no quieres subirlos)
+# ============================================
+# /hms/migration-scripts/
+
+# ============================================
+# Configuration Files (seguridad)
+# ============================================
+/hms/include/config.php
+*.env
+.env.local
+.env.production
+
+# ============================================
+# Database
+# ============================================
+*.sql
+*.sqlite
+*.db
+
+# ============================================
+# IDE & Editors
+# ============================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================
+# Uploads (user generated content)
+# ============================================
+/hms/uploads/*
+!/hms/uploads/.gitkeep
+
+# ============================================
+# Assets que pueden ser generados
+# ============================================
+/hms/assets/images/uploads/
+
+# ============================================
+# Logs
+# ============================================
+*.log
+error_log
+access_log
+/logs/
+
+# ============================================
+# Temporary Files
+# ============================================
+tmp/
+temp/
+cache/
+
+# ============================================
+# Sistema de archivos de Windows
+# ============================================
+desktop.ini
+
+# ============================================
+# Archivos específicos del proyecto
+# ============================================
+# Descomentar si no quieres subir los backups de código
+# *.php.backup.*
+# *.html.backup.*
