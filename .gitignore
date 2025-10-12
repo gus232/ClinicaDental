@@ -24,8 +24,6 @@ package-lock.json
 # ============================================
 # Backups
 # ============================================
-/hms/backups/*.sql
-/hms/backups/*.backup.*
 *.backup
 *.bak
 *.old
@@ -43,17 +41,7 @@ package-lock.json
 .env.local
 .env.production
 
-# ============================================
-# Database
-# ============================================
-# Ignore all SQL files EXCEPT the schema
-*.sql
-!database/schema.sql
-!database/seed.sql
 
-# SQLite databases
-*.sqlite
-*.db
 
 # ============================================
 # IDE & Editors
