@@ -5,7 +5,7 @@
 SET FOREIGN_KEY_CHECKS=0;
 
 -- 
--- Tabla: admin
+-- 1. Tabla: admin
 -- 
 DROP TABLE IF EXISTS `admin`;
 
@@ -22,7 +22,7 @@ INSERT INTO `admin` (`id`, `username`, `password`, `updationDate`) VALUES ('1', 
 INSERT INTO `admin` (`id`, `username`, `password`, `updationDate`) VALUES ('2', 'nuevoadmin', 'admin12345', '2024-01-15 10:30:00 AM');
 
 -- 
--- Tabla: appointment
+-- 2. Tabla: appointment
 -- 
 DROP TABLE IF EXISTS `appointment`;
 
@@ -48,7 +48,7 @@ INSERT INTO `appointment` (`id`, `doctorSpecialization`, `doctorId`, `userId`, `
 INSERT INTO `appointment` (`id`, `doctorSpecialization`, `doctorId`, `userId`, `consultancyFees`, `appointmentDate`, `appointmentTime`, `postingDate`, `userStatus`, `doctorStatus`, `updationDate`) VALUES ('6', 'General Physician', '6', '2', '2500', '2022-07-22', '6:30 PM', '2022-07-15 16:24:38', '1', '1', NULL);
 
 -- 
--- Tabla: doctors
+-- 3. Tabla: doctors
 -- 
 DROP TABLE IF EXISTS `doctors`;
 
@@ -78,7 +78,7 @@ INSERT INTO `doctors` (`id`, `specilization`, `doctorName`, `address`, `docFees`
 INSERT INTO `doctors` (`id`, `specilization`, `doctorName`, `address`, `docFees`, `contactno`, `docEmail`, `password`, `creationDate`, `updationDate`) VALUES ('9', 'Dermatologist', 'Anuj kumar', 'New Delhi India 110001', '500', '1234567890', 'anujk@test.com', '$2y$10$8DGAgtl7sSfZ9KcHXHpO4.BHOERIL4P3qtWlJepn1ecCsWdl052X2', '2019-11-10 13:37:47', '2025-10-10 22:03:13');
 
 -- 
--- Tabla: doctorslog
+-- 4. Tabla: doctorslog
 -- 
 DROP TABLE IF EXISTS `doctorslog`;
 
@@ -98,7 +98,7 @@ INSERT INTO `doctorslog` (`id`, `uid`, `username`, `userip`, `loginTime`, `logou
 INSERT INTO `doctorslog` (`id`, `uid`, `username`, `userip`, `loginTime`, `logout`, `status`) VALUES ('21', '7', 'test@demo.com', '::1\0\0\0\0\0\0\0\0\0\0\0\0\0', '2022-07-15 16:25:47', '16-07-2022 02:56:57 AM', '1');
 
 -- 
--- Tabla: doctorspecilization
+-- 5. Tabla: doctorspecilization
 -- 
 DROP TABLE IF EXISTS `doctorspecilization`;
 
@@ -124,7 +124,7 @@ INSERT INTO `doctorspecilization` (`id`, `specilization`, `creationDate`, `updat
 INSERT INTO `doctorspecilization` (`id`, `specilization`, `creationDate`, `updationDate`) VALUES ('12', 'Dermatologist', '2019-11-10 13:36:36', '2019-11-10 13:36:50');
 
 -- 
--- Tabla: tblcontactus
+-- 6. Tabla: tblcontactus
 -- 
 DROP TABLE IF EXISTS `tblcontactus`;
 
@@ -147,7 +147,7 @@ INSERT INTO `tblcontactus` (`id`, `fullname`, `email`, `contactno`, `message`, `
 INSERT INTO `tblcontactus` (`id`, `fullname`, `email`, `contactno`, `message`, `PostingDate`, `AdminRemark`, `LastupdationDate`, `IsRead`) VALUES ('3', 'fdsfsdf', 'fsdfsd@ghashhgs.com', '3264826346', 'sample text   sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  sample text  ', '2019-11-10 13:53:48', 'vfdsfgfd', '2019-11-10 13:54:04', '1');
 
 -- 
--- Tabla: tblmedicalhistory
+-- 7. Tabla: tblmedicalhistory
 -- 
 DROP TABLE IF EXISTS `tblmedicalhistory`;
 
@@ -172,7 +172,7 @@ INSERT INTO `tblmedicalhistory` (`ID`, `PatientID`, `BloodPressure`, `BloodSugar
 INSERT INTO `tblmedicalhistory` (`ID`, `PatientID`, `BloodPressure`, `BloodSugar`, `Weight`, `Temperature`, `MedicalPres`, `CreationDate`) VALUES ('7', '5', '80/120', '120', '85', '98.6', 'Rx\r\n\r\nAbc tab\r\nxyz Syrup', '2019-11-10 13:50:23');
 
 -- 
--- Tabla: tblpatient
+-- 8. Tabla: tblpatient
 -- 
 DROP TABLE IF EXISTS `tblpatient`;
 
@@ -199,7 +199,7 @@ INSERT INTO `tblpatient` (`ID`, `Docid`, `PatientName`, `PatientContno`, `Patien
 INSERT INTO `tblpatient` (`ID`, `Docid`, `PatientName`, `PatientContno`, `PatientEmail`, `PatientGender`, `PatientAdd`, `PatientAge`, `PatientMedhis`, `CreationDate`, `UpdationDate`) VALUES ('5', '9', 'John', '1234567890', 'john@test.com', 'male', 'Test ', '25', 'THis is sample text for testing.', '2019-11-10 13:49:24', NULL);
 
 -- 
--- Tabla: userlog
+-- 9. Tabla: userlog
 -- 
 DROP TABLE IF EXISTS `userlog`;
 
@@ -226,7 +226,7 @@ INSERT INTO `userlog` (`id`, `uid`, `username`, `userip`, `loginTime`, `logout`,
 INSERT INTO `userlog` (`id`, `uid`, `username`, `userip`, `loginTime`, `logout`, `status`) VALUES ('32', '2', 'test@gmail.com', '::1\0\0\0\0\0\0\0\0\0\0\0\0\0', '2025-10-10 21:18:04', NULL, '1');
 
 -- 
--- Tabla: users
+-- 10. Tabla: users
 -- 
 DROP TABLE IF EXISTS `users`;
 
