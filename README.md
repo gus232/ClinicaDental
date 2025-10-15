@@ -71,7 +71,6 @@ Facilitar la gestión administrativa y clínica de instituciones de salud median
 
 ### ⚠️ Funcionalidades Parciales
 
-- ⚠️ Dashboards de Doctor y Admin (implementados pero con errores de renderizado)
 - ⚠️ Sistema de roles (columna existe pero sin gestión dinámica)
 - ⚠️ Validación de contraseñas (bcrypt implementado pero sin políticas)
 
@@ -748,33 +747,7 @@ Password: admin12345
 
 ### 🔴 CRÍTICOS (Requieren atención inmediata)
 
-#### 1. **Dashboards de Doctor y Admin Renderizando en Blanco**
-
-**Archivo afectado:** `doctor/dashboard.php`, `admin/dashboard.php`
-
-**Síntoma:**
-- Login exitoso
-- Redirección correcta
-- Pero página aparece en blanco
-
-**Causa Probable:**
-- Archivos include (sidebar.php, header.php) no cargan correctamente
-- Posibles rutas CSS/JS incorrectas
-- JavaScript bloqueando renderizado
-
-**Solución Temporal:**
-```php
-// Agregar al inicio de doctor/dashboard.php y admin/dashboard.php:
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-// Esto mostrará errores específicos
-```
-
-**Pendiente:** Depurar includes y rutas de assets. Se tiene que testear el envio de los formularios "Contacto" y "Recuperación de contraseña"  
-
----
-
-#### 2. **Sin Validación de Complejidad de Contraseñas**
+#### 1. **Sin Validación de Complejidad de Contraseñas**
 
 **Estado Actual:**
 - ✅ Bcrypt implementado
@@ -787,7 +760,7 @@ ini_set('display_errors', 1);
 
 ---
 
-#### 3. **Sin Sistema de Roles Granular**
+#### 2. **Sin Sistema de Roles Granular**
 
 **Estado Actual:**
 - ✅ Columna `user_type` existe
@@ -802,7 +775,7 @@ ini_set('display_errors', 1);
 
 ### 🟡 MEDIOS (Importantes pero no bloquean el sistema)
 
-#### 4. **Sin Protección CSRF**
+#### 3. **Sin Protección CSRF**
 
 **Riesgo:** Formularios vulnerables a Cross-Site Request Forgery
 
@@ -822,7 +795,7 @@ if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
 
 ---
 
-#### 5. **Sanitización XSS Incompleta**
+#### 4. **Sanitización XSS Incompleta**
 
 **Riesgo:** Posible inyección de scripts maliciosos
 
@@ -838,7 +811,7 @@ echo safe_output($user_input);
 
 ---
 
-#### 6. **Sin Bloqueo por Intentos Fallidos**
+#### 5. **Sin Bloqueo por Intentos Fallidos**
 
 **Estado Actual:**
 - ❌ Permite intentos ilimitados de login
@@ -853,7 +826,7 @@ echo safe_output($user_input);
 
 ### 🟢 BAJOS (Mejoras opcionales)
 
-#### 7. **Logs de Seguridad Básicos**
+#### 6. **Logs de Seguridad Básicos**
 
 **Estado Actual:**
 - ✅ Tablas `userlog` y `doctorslog` existen
@@ -874,7 +847,7 @@ CREATE TABLE security_logs (
 
 ---
 
-#### 8. **Sin Timeout de Sesión**
+#### 7. **Sin Timeout de Sesión**
 
 **Riesgo:** Sesiones permanecen activas indefinidamente
 
@@ -898,11 +871,6 @@ $_SESSION['last_activity'] = time();
 ## 🎯 Próximos Pasos
 
 ### Fase 1: Corrección de Bugs Críticos (Prioridad Alta)
-
-- [ ] **Depurar dashboards de doctor y admin**
-  - Verificar includes
-  - Corregir rutas CSS/JS
-  - Probar renderizado completo
 
 - [ ] **Implementar gestión completa de contraseñas**
   - Validación de complejidad
@@ -1155,6 +1123,46 @@ Revisa estos archivos en la carpeta **`docs/`**:
 ---
 
 ## 🔄 Changelog
+
+### [2.0.2] - 2025-10-15 (Corrección de Dashboards)
+
+#### Fixed (v2.0.2)
+
+- ✅ **Dashboard de pacientes en proyecto `hms` renderizando correctamente**
+  - Corregida consulta SQL en `include/header.php` (cambio de `fullName` a `full_name`)
+  - Problema: Columna inexistente causaba fallo silencioso que impedía renderizado
+
+- ✅ **Dashboards de admin y doctor en proyecto `hms-t` ahora funcionales**
+  - Corregida configuración de base de datos (puerto 3307→3306, base de datos `hms1`→`hms`)
+  - Corregidas variables de sesión (`$_SESSION['dlogin']` para doctores)
+  - Agregado `checklogin.php` en dashboard de doctor
+
+#### Changed (v2.0.2)
+
+- ✅ Actualizado `hms/include/header.php` - query corregida
+- ✅ Actualizado `hms-t/admin/include/config.php` - conexión BD corregida
+- ✅ Actualizado `hms-t/doctor/include/config.php` - conexión BD corregida
+- ✅ Actualizado `hms-t/user-login.php` - sesiones por tipo de usuario
+- ✅ Actualizado `hms-t/doctor/dashboard.php` - agregado sistema de autenticación
+
+#### Details (v2.0.2)
+
+**Problema Identificado:**
+1. En proyecto `hms`: Query SQL buscaba columna `fullName` pero la tabla usa `full_name`
+2. En proyecto `hms-t`: Configuración de BD apuntaba a puerto y base de datos incorrectos
+3. En proyecto `hms-t`: Sesiones no se establecían correctamente para doctores
+
+**Impacto:**
+- Los dashboards se cargaban pero mostraban páginas en blanco
+- La consulta fallaba silenciosamente debido a `error_reporting(0)`
+- Conexión a BD rechazada por puerto incorrecto (3307 vs 3306)
+
+**Solución:**
+- Actualizada query en header.php línea 35-38
+- Corregida configuración de BD en ambos proyectos
+- Implementado sistema de sesiones diferenciado por rol
+
+---
 
 ### [2.0.1] - 2025-10-12 (Refactorización y Limpieza)
 

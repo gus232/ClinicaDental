@@ -7,8 +7,8 @@
 -- ============================================
 -- 1. Create Database
 -- ============================================
-CREATE DATABASE IF NOT EXISTS `hms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `hms`;
+CREATE DATABASE IF NOT EXISTS `hms_v2` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `hms_v2`;
 
 -- ============================================
 -- 2. Main Users Table (Unified Authentication)

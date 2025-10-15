@@ -32,10 +32,10 @@
 
 
 
-									<?php $query=mysqli_query($con,"select fullName from users where id='".$_SESSION['id']."'");
+									<?php $query=mysqli_query($con,"select full_name from users where id='".$_SESSION['id']."'");
 while($row=mysqli_fetch_array($query))
 {
-	echo $row['fullName'];
+	echo $row['full_name'];
 }
 									?> <i class="ti-angle-down"></i></i></span>
 								</a>
