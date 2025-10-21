@@ -60,7 +60,19 @@ Facilitar la gestión administrativa y clínica de instituciones de salud median
 - ✅ Normalización a Tercera Forma Normal (3FN)
 - ✅ 16 usuarios migrados exitosamente
 
-#### 3. **Módulos Funcionales**
+#### 3. **Políticas de Contraseñas - FASE 1** (Nuevo - Oct 2025)
+- ✅ Validación de complejidad (8+ caracteres, mayúsculas, minúsculas, números, especiales)
+- ✅ Historial de contraseñas (últimas 5 contraseñas)
+- ✅ Expiración automática de contraseñas (90 días)
+- ✅ Advertencia de expiración próxima (7 días antes)
+- ✅ Bloqueo de cuenta por intentos fallidos (3 intentos = 30 minutos)
+- ✅ Desbloqueo automático y manual (panel de administración)
+- ✅ Validación en tiempo real con indicador de fortaleza
+- ✅ Registro de intentos de login con IP
+- ✅ Forzar cambio de contraseña al primer login
+- ✅ Sistema de tokens para reset de contraseña
+
+#### 4. **Módulos Funcionales**
 - ✅ 35 vistas implementadas (100% con código)
 - ✅ Sistema de citas médicas
 - ✅ Gestión de pacientes
@@ -68,19 +80,18 @@ Facilitar la gestión administrativa y clínica de instituciones de salud median
 - ✅ Historial médico
 - ✅ Reportes básicos
 - ✅ Logs de acceso (básico)
+- ✅ Panel de desbloqueo de cuentas (admin)
 
 ### ⚠️ Funcionalidades Parciales
 
 - ⚠️ Sistema de roles (columna existe pero sin gestión dinámica)
-- ⚠️ Validación de contraseñas (bcrypt implementado pero sin políticas)
 
 ### ❌ Funcionalidades Pendientes
 
-- ❌ Gestión completa de contraseñas (complejidad, histórico, bloqueo)
-- ❌ Sistema de roles y permisos granular
-- ❌ Matriz de accesos
+- ❌ Sistema de roles y permisos granular (FASE 2)
+- ❌ Matriz de accesos (FASE 2)
 - ❌ Logs de seguridad completos
-- ❌ Corrección de vulnerabilidades OWASP
+- ❌ Corrección de vulnerabilidades OWASP (FASE 3)
 - ❌ CSRF tokens en formularios
 - ❌ Sanitización XSS completa
 
@@ -870,21 +881,27 @@ $_SESSION['last_activity'] = time();
 
 ## 🎯 Próximos Pasos
 
-### Fase 1: Corrección de Bugs Críticos (Prioridad Alta)
+### ✅ Fase 1: Políticas de Contraseñas (COMPLETADO - Oct 2025)
 
-- [ ] **Implementar gestión completa de contraseñas**
-  - Validación de complejidad
-  - Tabla `password_history`
-  - Bloqueo al 3er intento
-  - Sistema de desbloqueo
+- [x] **Implementar gestión completa de contraseñas**
+  - [x] Validación de complejidad
+  - [x] Tabla `password_history`
+  - [x] Bloqueo al 3er intento
+  - [x] Sistema de desbloqueo
+  - [x] Expiración de contraseñas
+  - [x] Registro de intentos con IP
+
+### Fase 2: Sistema de Roles y Permisos (SIGUIENTE - Oct/Nov 2025)
 
 - [ ] **Crear sistema de roles y permisos**
-  - Tablas: `roles`, `permissions`, `role_permissions`
-  - Matriz de accesos
-  - Función `hasPermission()`
-  - Módulo de gestión de roles (CRUD)
+  - [ ] Tablas: `roles`, `permissions`, `role_permissions`
+  - [ ] Matriz de accesos
+  - [ ] Función `hasPermission()`
+  - [ ] Módulo de gestión de roles (CRUD)
+  - [ ] Migración de user_type a sistema de roles
+  - [ ] Middleware de autorización
 
-### Fase 2: Mejoras de Seguridad (Prioridad Media)
+### Fase 3: Mejoras de Seguridad Adicionales (Prioridad Media)
 
 - [ ] **Implementar protección CSRF**
   - Generar tokens
@@ -900,8 +917,9 @@ $_SESSION['last_activity'] = time();
 - [ ] **Logs de seguridad completos**
   - Tabla `security_logs`
   - Registrar acciones críticas
+  - Dashboard de monitoreo
 
-### Fase 3: Corrección de Vulnerabilidades OWASP (Prioridad Media-Alta)
+### Fase 4: Corrección de Vulnerabilidades OWASP (Prioridad Media-Alta)
 
 - [ ] **A01: Broken Access Control**
   - Verificar permisos en todas las páginas
@@ -921,7 +939,7 @@ $_SESSION['last_activity'] = time();
   - [ ] Agregar 2FA (opcional)
   - [ ] Implementar bloqueo de cuentas
 
-### Fase 4: Testing y Documentación (Prioridad Baja)
+### Fase 5: Testing y Documentación Final (Prioridad Baja)
 
 - [ ] **Testing completo**
   - Probar todas las 35 vistas
@@ -1124,6 +1142,126 @@ Revisa estos archivos en la carpeta **`docs/`**:
 
 ## 🔄 Changelog
 
+### [2.1.0] - 2025-10-20 (FASE 1: Políticas de Contraseñas)
+
+#### Added (v2.1.0)
+
+**Nuevas Tablas:**
+- ✅ `password_history` - Historial de últimas 5 contraseñas
+- ✅ `password_reset_tokens` - Tokens para recuperación de contraseña
+- ✅ `login_attempts` - Registro de intentos fallidos con IP
+- ✅ `password_policy_config` - Configuración centralizada de políticas
+
+**Nuevas Vistas:**
+- ✅ `users_password_expiring_soon` - Usuarios con contraseñas próximas a expirar
+- ✅ `locked_accounts` - Cuentas bloqueadas actualmente
+
+**Nuevos Stored Procedures:**
+- ✅ `cleanup_old_security_data()` - Limpieza automática de datos antiguos
+
+**Nuevos Módulos:**
+- ✅ `hms/include/password-policy.php` (437 líneas) - Clase PasswordPolicy
+- ✅ `hms/admin/unlock-accounts.php` (399 líneas) - Panel de desbloqueo
+- ✅ `tests/create-test-users.php` - Script de creación de usuarios de prueba
+- ✅ `tests/generate-hash.php` - Generador de hashes Bcrypt
+
+**Nueva Documentación:**
+- ✅ `docs/FASE1_POLITICAS_CONTRASEÑAS_COMPLETADO.md` - Documentación completa
+- ✅ `tests/PLAN_DE_PRUEBAS_FASE1.md` - Plan de pruebas exhaustivo
+- ✅ `tests/GUIA_RAPIDA_PRUEBAS.md` - Guía rápida de testing
+
+#### Changed (v2.1.0)
+
+**Modificaciones en Tabla `users`:**
+- ✅ `failed_login_attempts` - Contador de intentos fallidos
+- ✅ `account_locked_until` - Timestamp de bloqueo
+- ✅ `password_expires_at` - Fecha de expiración (90 días)
+- ✅ `password_changed_at` - Última modificación de contraseña
+- ✅ `last_login_ip` - IP del último login
+- ✅ `force_password_change` - Forzar cambio en próximo login
+
+**Archivos Actualizados:**
+- ✅ `hms/login.php` (reescrito, 309 líneas) - Sistema de bloqueo implementado
+- ✅ `hms/change-password.php` (reescrito, 421 líneas) - Validación completa + indicador de fortaleza
+- ✅ `hms/admin/include/sidebar.php` - Agregada sección "Seguridad"
+- ✅ `hms/include/config.php` - Configuración de timezone (America/La_Paz)
+
+**Configuraciones:**
+- ✅ Timezone PHP y MySQL sincronizados (GMT-4)
+- ✅ Políticas de contraseñas parametrizadas en BD
+- ✅ Lockout duration: 30 minutos
+- ✅ Password expiration: 90 días
+- ✅ Password history: últimas 5 contraseñas
+
+#### Fixed (v2.1.0)
+
+**Bugs Críticos:**
+- ✅ Error en `saveToHistory()` - bind_param con tipo incorrecto ("iiss" → "isis")
+- ✅ Lockout mostraba 6 horas en lugar de 30 minutos (timezone desincronizado)
+- ✅ Mensajes de error no se mostraban en change-password.php
+- ✅ Menú "Seguridad" no aparecía en dashboard de admin
+
+**Archivos Corregidos:**
+- ✅ `hms/include/password-policy.php:218` - Corregido tipo de bind_param
+- ✅ `hms/include/config.php:14-16` - Agregada configuración de timezone
+- ✅ `hms/change-password.php` - Agregado `style="display: block;"` a alertas
+- ✅ `hms/admin/include/sidebar.php:179-197` - Agregado menú de seguridad
+
+**Scripts SQL de Corrección:**
+- ✅ `database/migrations/fix-lockout-config.sql` - Corrección de lockout_duration_minutes
+
+#### Security (v2.1.0)
+
+**Nuevas Medidas de Seguridad:**
+- ✅ Validación de complejidad de contraseñas (8+ caracteres, mayúsculas, minúsculas, números, especiales)
+- ✅ Prevención de reutilización de contraseñas (últimas 5)
+- ✅ Expiración automática de contraseñas (90 días)
+- ✅ Advertencias de expiración próxima (7 días antes)
+- ✅ Bloqueo automático tras 3 intentos fallidos
+- ✅ Desbloqueo automático tras 30 minutos
+- ✅ Registro de IP en intentos de login
+- ✅ Sistema de tokens seguros para reset de contraseña
+- ✅ Limpieza automática de datos antiguos (90 días)
+
+**Validaciones Implementadas:**
+- ✅ Longitud mínima: 8 caracteres
+- ✅ Al menos 1 mayúscula
+- ✅ Al menos 1 minúscula
+- ✅ Al menos 1 número
+- ✅ Al menos 1 carácter especial
+- ✅ No puede ser igual a contraseñas anteriores
+
+#### Testing (v2.1.0)
+
+**Test Cases Implementados:**
+- ✅ 10 casos de prueba documentados
+- ✅ Usuarios de prueba creados (test@hospital.com, admin@hospital.com, doctor@hospital.com)
+- ✅ Validación de complejidad de contraseñas
+- ✅ Validación de historial de contraseñas
+- ✅ Validación de expiración de contraseñas
+- ✅ Validación de bloqueo por intentos fallidos
+- ✅ Validación de desbloqueo manual
+- ✅ Validación de desbloqueo automático
+
+**Credenciales de Prueba:**
+```
+Paciente:     test@hospital.com / FirstPassword123@!
+Admin:        admin@hospital.com / AdminSecure456@!
+Doctor:       doctor@hospital.com / DoctorPass789@!
+```
+
+#### Statistics (v2.1.0)
+
+**Líneas de Código:**
+- 🔢 Total nuevo código: ~2,484 líneas
+- 📄 Archivos nuevos: 11
+- 📝 Archivos modificados: 4
+- 🗄️ Tablas nuevas: 4
+- 🔧 Stored procedures: 1
+- 👁️ Vistas: 2
+
+---
+
 ### [2.0.2] - 2025-10-15 (Corrección de Dashboards)
 
 #### Fixed (v2.0.2)
@@ -1265,9 +1403,9 @@ Si este proyecto te resultó útil, considera:
 
 **Desarrollado con ❤️ para la Clínica Dental Muelitas**
 
-**Última actualización:** 12 de Octubre, 2025
+**Última actualización:** 20 de Octubre, 2025
 
-**Versión:** 2.0.0 (Refactorización de Seguridad)
+**Versión:** 2.1.0 (FASE 1: Políticas de Contraseñas Completadas)
 
 ---
 

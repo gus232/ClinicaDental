@@ -176,6 +176,25 @@
                         </div>
                     </a>
                 </li>
+                <li>
+                    <a href="javascript:void(0)">
+                        <div class="item-content">
+                            <div class="item-media">
+                                <i class="fa fa-shield"></i>
+                            </div>
+                            <div class="item-inner">
+                                <span class="title"> Seguridad </span><i class="icon-arrow"></i>
+                            </div>
+                        </div>
+                    </a>
+                    <ul class="sub-menu">
+                        <li>
+                            <a href="unlock-accounts.php">
+                                <span class="title"> Desbloqueo de Cuentas </span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
             <!-- end: CARACTERÍSTICAS PRINCIPALES -->
         </nav>
