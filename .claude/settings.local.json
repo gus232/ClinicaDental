@@ -4,7 +4,8 @@
       "Bash(tree:*)",
       "Bash(dir:*)",
       "Bash(mysql:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(/c/xampp/php/php.exe:*)"
     ],
     "deny": [],
     "ask": []
