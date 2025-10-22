@@ -193,6 +193,16 @@
                                 <span class="title"> Desbloqueo de Cuentas </span>
                             </a>
                         </li>
+                        <li>
+                            <a href="manage-roles.php">
+                                <span class="title"><i class="fa fa-shield"></i> Gestionar Roles y Permisos </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="rbac-example.php">
+                                <span class="title"><i class="fa fa-eye"></i> Demo RBAC </span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>

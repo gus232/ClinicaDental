@@ -76,10 +76,19 @@ class UserManagement {
             $stmt->execute();
             $stmt->close();
 
+            // Liberar resultados del stored procedure
+            while ($this->db->more_results()) {
+                $this->db->next_result();
+                if ($res = $this->db->store_result()) {
+                    $res->free();
+                }
+            }
+
             // Obtener el ID del nuevo usuario
             $result = $this->db->query("SELECT @new_user_id as user_id");
             $row = $result->fetch_assoc();
             $new_user_id = $row['user_id'];
+            $result->free();
 
             if ($new_user_id > 0) {
                 return [
@@ -148,10 +157,19 @@ class UserManagement {
             $stmt->execute();
             $stmt->close();
 
+            // Liberar resultados del stored procedure
+            while ($this->db->more_results()) {
+                $this->db->next_result();
+                if ($res = $this->db->store_result()) {
+                    $res->free();
+                }
+            }
+
             // Obtener resultado
             $result = $this->db->query("SELECT @result as result");
             $row = $result->fetch_assoc();
             $update_result = $row['result'];
+            $result->free();
 
             if ($update_result == 1) {
                 return [
@@ -299,6 +317,14 @@ class UserManagement {
                     }
                 }
                 $stmt->close();
+
+                // Liberar resultados adicionales del stored procedure
+                while ($this->db->more_results()) {
+                    $this->db->next_result();
+                    if ($res = $this->db->store_result()) {
+                        $res->free();
+                    }
+                }
             }
 
             return [
@@ -344,6 +370,14 @@ class UserManagement {
                     }
                 }
                 $stmt->close();
+
+                // Liberar resultados adicionales del stored procedure
+                while ($this->db->more_results()) {
+                    $this->db->next_result();
+                    if ($res = $this->db->store_result()) {
+                        $res->free();
+                    }
+                }
             }
 
             return [
@@ -409,6 +443,16 @@ class UserManagement {
             $users = [];
             while ($row = $result->fetch_assoc()) {
                 $users[] = $row;
+            }
+
+            $stmt->close();
+
+            // Liberar resultados adicionales del stored procedure
+            while ($this->db->more_results()) {
+                $this->db->next_result();
+                if ($res = $this->db->store_result()) {
+                    $res->free();
+                }
             }
 
             return $users;
@@ -488,7 +532,18 @@ class UserManagement {
     public function getStatistics() {
         try {
             $result = $this->db->query("CALL get_user_statistics()");
-            return $result->fetch_assoc() ?: [];
+            $stats = $result->fetch_assoc() ?: [];
+            $result->free();
+
+            // Liberar resultados adicionales del stored procedure
+            while ($this->db->more_results()) {
+                $this->db->next_result();
+                if ($res = $this->db->store_result()) {
+                    $res->free();
+                }
+            }
+
+            return $stats;
 
         } catch (Exception $e) {
             error_log("Error en getStatistics: " . $e->getMessage());
