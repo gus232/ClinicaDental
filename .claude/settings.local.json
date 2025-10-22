@@ -5,7 +5,8 @@
       "Bash(dir:*)",
       "Bash(mysql:*)",
       "Bash(php:*)",
-      "Bash(/c/xampp/php/php.exe:*)"
+      "Bash(/c/xampp/php/php.exe:*)",
+      "Bash(if not exist \"c:\\xampp\\htdocs\\hospital\\hms\\admin\\api\" mkdir \"c:\\xampp\\htdocs\\hospital\\hms\\admin\\api\")"
     ],
     "deny": [],
     "ask": []

@@ -60,35 +60,57 @@ Facilitar la gestión administrativa y clínica de instituciones de salud median
 - ✅ Normalización a Tercera Forma Normal (3FN)
 - ✅ 16 usuarios migrados exitosamente
 
-#### 3. **Políticas de Contraseñas - FASE 1** (Nuevo - Oct 2025)
-- ✅ Validación de complejidad (8+ caracteres, mayúsculas, minúsculas, números, especiales)
-- ✅ Historial de contraseñas (últimas 5 contraseñas)
-- ✅ Expiración automática de contraseñas (90 días)
+#### 3. **Políticas de Contraseñas - FASE 1** (21 de Octubre, 2025)
+- ✅ **Validación de complejidad** (8+ caracteres, mayúsculas, minúsculas, números, especiales)
+- ✅ **Longitud mínima** configurable
+- ✅ **Tiempo de vida útil** (90 días configurables)
+- ✅ **Control de histórico** (últimas 5 contraseñas)
+- ✅ **Bloqueo al 3er intento** (30 minutos)
+- ✅ **Sistema de DESBLOQUEO** (automático y manual desde admin/unlock-accounts.php)
+- ✅ **Sistema de REINICIO** (tokens seguros con expiración)
+- ✅ **Protocolo de encriptación** Bcrypt (password_hash con cost 10)
 - ✅ Advertencia de expiración próxima (7 días antes)
-- ✅ Bloqueo de cuenta por intentos fallidos (3 intentos = 30 minutos)
-- ✅ Desbloqueo automático y manual (panel de administración)
 - ✅ Validación en tiempo real con indicador de fortaleza
 - ✅ Registro de intentos de login con IP
 - ✅ Forzar cambio de contraseña al primer login
-- ✅ Sistema de tokens para reset de contraseña
 
-#### 4. **Sistema RBAC (Role-Based Access Control) - FASE 2** (Nuevo - Oct 2025)
-- ✅ Sistema completo de roles y permisos granulares
+#### 4. **Sistema RBAC (Role-Based Access Control) - FASE 2** (21 de Octubre, 2025)
+- ✅ **Gestión completa de ROLES** (Altas, Bajas y Asignación)
+- ✅ **Gestión granular desde la aplicación** (no en código ni BD directamente)
 - ✅ 7 roles predefinidos (Super Admin, Admin, Doctor, Patient, Receptionist, Nurse, Lab Technician)
 - ✅ 58+ permisos organizados en 9 categorías
 - ✅ 8 tablas de BD para RBAC (roles, permissions, role_permissions, user_roles, etc.)
 - ✅ 6 vistas SQL optimizadas (user_effective_permissions, role_permission_matrix, etc.)
 - ✅ 5 stored procedures para gestión de roles
 - ✅ Middleware de protección de páginas (`requirePermission()`, `requireRole()`)
-- ✅ Sistema de auditoría de cambios de roles
+- ✅ **Sistema de auditoría completo** de cambios de roles
 - ✅ Sistema de caché de permisos (performance)
 - ✅ Página de acceso denegado personalizada (403)
 - ✅ Demo interactiva del sistema RBAC
 - ✅ Asignación de múltiples roles por usuario
 - ✅ Roles temporales con expiración
 - ✅ Herencia de permisos entre roles
+- ✅ **Matriz de accesos** (disponible en demo, falta interfaz de gestión visual)
 
-#### 5. **Módulos Funcionales**
+#### 5. **Gestión de Usuarios - ABM Completo - FASE 3** (21 de Octubre, 2025) ✅ NUEVO
+- ✅ **CRUD completo de usuarios** con auditoría
+- ✅ **Creación de usuarios** (stored procedure `create_user_with_audit`)
+- ✅ **Actualización de usuarios** (stored procedure `update_user_with_audit`)
+- ✅ **Eliminación lógica** (soft delete, status = 'inactive')
+- ✅ **Historial de cambios** completo (tabla `user_change_history`)
+- ✅ **Asignación de roles** desde interfaz (`assignRoles()`, `revokeRoles()`)
+- ✅ **Búsqueda avanzada** (stored procedure `search_users`)
+- ✅ **Estadísticas de usuarios** (stored procedure `get_user_statistics`)
+- ✅ **Gestión de sesiones** (tabla `user_sessions`)
+- ✅ **Notas de usuario** (tabla `user_notes`)
+- ✅ **Fotos de perfil** (tabla `user_profile_photos`)
+- ✅ **Clase PHP UserManagement** (600+ líneas, MySQLi)
+- ✅ **API REST** para usuarios (11 endpoints, archivo `admin/api/users-api.php`)
+- ✅ **Protección CSRF** (csrf-protection.php con generación y validación de tokens)
+- ✅ **Suite de tests automatizada** (21 pruebas, 100% pasando)
+- ⚠️ **FALTA**: Formato estándar de User ID (USR-2025-0001, DOC-2025-0001)
+
+#### 6. **Módulos Funcionales**
 - ✅ 35 vistas implementadas (100% con código)
 - ✅ Sistema de citas médicas
 - ✅ Gestión de pacientes
@@ -98,18 +120,21 @@ Facilitar la gestión administrativa y clínica de instituciones de salud median
 - ✅ Logs de acceso (básico)
 - ✅ Panel de desbloqueo de cuentas (admin)
 - ✅ Sistema RBAC completo con permisos granulares
+- ✅ Sistema de gestión de usuarios con auditoría completa
 
 ### ⚠️ Funcionalidades Parciales
 
 - ⚠️ Integración de RBAC en todas las páginas existentes (en progreso)
+- ⚠️ Matriz de accesos visual interactiva (demo existe, falta interfaz de gestión)
+- ⚠️ Formato estándar de User ID (pendiente implementar)
 
 ### ❌ Funcionalidades Pendientes
 
-- ❌ ABM de Usuarios completo (FASE 3)
-- ❌ Matriz de accesos visual (FASE 4)
-- ❌ Corrección de vulnerabilidades OWASP (FASE 5)
-- ❌ CSRF tokens en formularios
-- ❌ Sanitización XSS completa
+- ❌ Matriz de accesos visual completa con gestión (FASE 4)
+- ❌ Corrección de vulnerabilidades OWASP restantes (FASE 5)
+- ❌ CSRF tokens en TODOS los formularios (parcialmente implementado)
+- ❌ Sanitización XSS completa en todas las vistas
+- ❌ Aplicación completa de principios OWASP (menos asombro, mecanismo menos común, economía del mecanismo)
 
 ---
 
@@ -256,6 +281,175 @@ hospital/
 ---
 
 ## 🔄 Cambios y Mejoras Realizadas
+
+### 📅 FASE 3: Gestión de Usuarios (ABM) - 21 de Octubre, 2025
+
+#### 🎯 **Sistema Completo de Gestión de Usuarios con Auditoría**
+
+**Objetivo:** Implementar módulo ABM (Altas, Bajas y Modificaciones) de usuarios con trazabilidad completa de cambios y cumplimiento de requisitos del proyecto SIS 321.
+
+**Base de Datos (4 tablas nuevas):**
+```
+✅ user_change_history      - Registro detallado de todos los cambios
+✅ user_sessions             - Control de sesiones activas
+✅ user_profile_photos       - Gestión de fotos de perfil
+✅ user_notes                - Notas administrativas sobre usuarios
+```
+
+**Vistas SQL (6 optimizadas):**
+```
+✅ active_users_summary      - Vista de usuarios activos con estadísticas
+✅ user_changes_detailed     - Historial de cambios con información del usuario que realizó el cambio
+✅ active_sessions_view      - Sesiones activas en el sistema
+✅ user_statistics_by_role   - Estadísticas agrupadas por rol
+✅ recent_changes_timeline   - Línea de tiempo de cambios recientes (últimas 24 horas)
+✅ expiring_user_roles       - Roles de usuarios próximos a expirar
+```
+
+**Stored Procedures (4):**
+```
+✅ create_user_with_audit()        - Crear usuario con registro de auditoría
+✅ update_user_with_history()      - Actualizar usuario registrando cambios
+✅ search_users()                  - Búsqueda avanzada con filtros múltiples
+✅ get_user_statistics()           - Estadísticas generales del sistema
+```
+
+**Archivos PHP Creados:**
+```
+✅ hms/include/UserManagement.php (600+ líneas)
+   - Clase completa con 20+ métodos
+   - Compatible con MySQLi (no PDO)
+   - Métodos: createUser(), updateUser(), deleteUser(), searchUsers()
+   - Gestión de roles: assignRoles(), revokeRoles(), getUserRoles()
+   - Validaciones: validateUserData(), emailExists(), userExists()
+   - Auditoría: logChange(), getUserHistory()
+
+✅ hms/include/csrf-protection.php (120 líneas)
+   - Generación de tokens CSRF de 64 caracteres
+   - Validación con hash_equals() (timing-attack safe)
+   - Funciones helper: csrf_token(), csrf_validate(), csrf_token_field()
+
+✅ hms/admin/api/users-api.php (600+ líneas)
+   - API REST con 11 endpoints
+   - Autenticación por sesión
+   - Validación CSRF en todas las operaciones
+   - Endpoints: users, create, update, delete, search, statistics, etc.
+
+✅ hms/test-user-management.php (700+ líneas)
+   - Suite de 21 pruebas automatizadas
+   - Interfaz visual de resultados
+   - Cobertura completa de funcionalidades
+   - 100% de pruebas pasando (21/21)
+```
+
+**Funcionalidades Implementadas:**
+```
+✅ CRUD completo de usuarios
+   - Crear usuarios con validación completa
+   - Leer/consultar usuarios con filtros
+   - Actualizar información de usuarios
+   - Eliminar usuarios (soft delete, no física)
+
+✅ Auditoría completa
+   - Registro de quién hizo el cambio
+   - Qué cambió (campo, valor anterior, valor nuevo)
+   - Cuándo se realizó el cambio
+   - Por qué se realizó (razón/motivo)
+   - Desde qué IP se realizó
+
+✅ Gestión de roles integrada con FASE 2
+   - Asignar múltiples roles a un usuario
+   - Revocar roles con registro de auditoría
+   - Visualizar roles activos de un usuario
+   - Roles con fecha de expiración
+
+✅ Búsqueda y filtros avanzados
+   - Por nombre, email, tipo de usuario
+   - Por estado (active/inactive/blocked)
+   - Por rol asignado
+   - Paginación configurable (limit/offset)
+
+✅ Estadísticas del sistema
+   - Total de usuarios (por tipo: patients, doctors, admins)
+   - Usuarios activos/inactivos/bloqueados
+   - Usuarios registrados últimos 7/30 días
+   - Sesiones activas actuales
+   - Cambios realizados últimas 24h/7 días
+
+✅ Protección de seguridad
+   - Tokens CSRF en formularios
+   - Validación de email único
+   - Prevención de SQL Injection (prepared statements)
+   - Registro de IP en cambios
+   - Validación de datos de entrada
+```
+
+**Pruebas Realizadas:**
+```
+✅ 21/21 pruebas automatizadas PASANDO (100%)
+
+Categorías de pruebas:
+✅ Test 1-8:   Verificación de estructura (tablas, SPs, clases, API)
+✅ Test 9-12:  Operaciones CRUD (crear, leer, actualizar, eliminar)
+✅ Test 13:    Obtener roles de usuario
+✅ Test 14-16: Gestión de roles (asignar, revocar, verificar)
+✅ Test 17-19: Búsqueda y filtros avanzados
+✅ Test 20:    Estadísticas generales
+✅ Test 21:    Listar todos los usuarios
+```
+
+**Correcciones Realizadas:**
+```
+✅ Problema 1: Columnas inexistentes en tabla users
+   - Eliminadas referencias a: contactno, city, address, gender
+   - Adaptado a estructura real de la tabla
+
+✅ Problema 2: Incompatibilidad PDO vs MySQLi
+   - Reescrita clase UserManagement para MySQLi
+   - Todos los métodos convertidos correctamente
+
+✅ Problema 3: Stored procedures con parámetros incorrectos
+   - Corregidos parámetros de assign_role_to_user (4 params)
+   - Corregidos parámetros de revoke_role_from_user (3 params)
+
+✅ Problema 4: Test de actualización con email duplicado
+   - Modificado para usar emails únicos con timestamp
+   - Test 11 ahora pasa correctamente
+```
+
+**Documentación Creada:**
+```
+✅ CORRECCIONES_COMPLETAS_FASE3.md (400+ líneas)
+   - Análisis completo de problemas y soluciones
+   - Guía de instalación paso a paso
+   - Comparación ANTES/DESPUÉS de cada corrección
+```
+
+**Archivos de Instalación:**
+```
+✅ database/migrations/005_user_management_enhancements_FIXED.sql
+✅ database/stored-procedures/INSTALAR_SP_FASE3_ULTRA_FIXED.sql
+```
+
+**Resultado:**
+```
+✅ Sistema ABM 100% funcional
+✅ 21/21 pruebas automatizadas pasando
+✅ Auditoría completa implementada
+✅ Integración perfecta con FASE 1 (contraseñas) y FASE 2 (RBAC)
+✅ Protección CSRF implementada
+✅ API REST funcional
+✅ Listo para FASE 4 (Matriz de Accesos Visual)
+```
+
+**Pendiente para siguiente fase:**
+```
+⚠️ Formato estándar de User ID (USR-2025-0001, DOC-2025-0001)
+⚠️ Interfaz visual de gestión de usuarios en dashboard admin
+⚠️ Integración completa con todas las vistas existentes
+```
+
+---
 
 ### 📅 FASE 2: Sistema RBAC - 21 de Octubre, 2025
 
