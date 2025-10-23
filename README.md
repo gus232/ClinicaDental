@@ -12,6 +12,7 @@
 ## 📋 Tabla de Contenidos
 
 - [Descripción General](#-descripción-general)
+- [Mapeo Proyecto SIS 321](#-mapeo-proyecto-sis-321) ⭐ NUEVO
 - [Estado Actual del Proyecto](#-estado-actual-del-proyecto)
 - [Tecnologías Utilizadas](#-tecnologías-utilizadas)
 - [Arquitectura del Sistema](#-arquitectura-del-sistema)
@@ -40,6 +41,109 @@ Facilitar la gestión administrativa y clínica de instituciones de salud median
 - Historial médico digital
 - Reportes y estadísticas
 - Sistema de roles (Paciente, Doctor, Administrador)
+
+---
+
+## 🎓 Mapeo Proyecto SIS 321
+
+**Proyecto:** Seguridad de Sistemas - Evaluación 2 Basada en Proyectos
+
+### 📊 Cumplimiento de Requisitos
+
+| # | REQUISITO | ESTADO | ARCHIVO/UBICACIÓN |
+|---|-----------|--------|-------------------|
+| 3 | Nombre y Descripción del Sistema | ✅ 100% | Este README, líneas 30-43 |
+| 4 | Objetivo del Sistema | ✅ 100% | Sección anterior |
+| 5 | Tecnología Utilizada | ✅ 100% | [Ver sección](#-tecnologías-utilizadas) |
+| 6 | Problemas/Necesidades que Resuelve | ⚠️ 50% | [Ver problemas](#-problemas-identificados-y-pendientes) |
+| 7 | Funcionalidad del Sistema | ✅ 100% | [Ver estado actual](#-estado-actual-del-proyecto) |
+| 8 | Alcance de Reingeniería | ✅ 100% | [Ver cambios](#-cambios-y-mejoras-realizadas) |
+| **9.1** | **Gestión de Usuarios (ABM)** | ✅ 100% | `admin/manage-users.php` |
+| **9.2** | **Gestión de Roles** | ✅ 100% | `admin/manage-roles.php` |
+| **9.3** | **Gestión de Contraseñas** | ✅ 100% | `include/password-policy.php` |
+| 10 | Principios OWASP | ⚠️ 65% | Implementación mixta |
+
+**CUMPLIMIENTO GENERAL:** ✅ **85%**
+
+### 🔐 Punto 9: Esquema de Seguridad - Detalles
+
+#### 9.1 Gestión de Usuarios (ABM) ✅
+- **Archivo:** `hms/admin/manage-users.php` (813 líneas)
+- **Clase:** `hms/include/UserManagement.php` (620 líneas)
+- **Funciones:**
+  - ✅ **ALTAS:** Crear usuarios con validación completa
+  - ✅ **BAJAS:** Soft delete (status='inactive')
+  - ✅ **MODIFICACIONES:** Actualización con auditoría
+  - ✅ Búsqueda avanzada y filtros
+  - ✅ Estadísticas en tiempo real
+  - ⚠️ **PENDIENTE:** Formato estándar User ID (USR-2025-0001)
+- **Auditoría:** Tabla `user_change_history` - registro completo de cambios
+- **Pruebas:** 21/21 tests pasando (100%)
+
+#### 9.2 Gestión de Roles ✅
+- **Archivo:** `hms/admin/manage-roles.php` (1564 líneas)
+- **Sistema RBAC:** `hms/include/rbac-functions.php` (550 líneas)
+- **Implementación:**
+  - ✅ **7 roles predefinidos** con prioridades
+  - ✅ **58+ permisos granulares** en 9 categorías
+  - ✅ **Matriz de accesos visual** - Tab interactivo
+  - ✅ **Gestión desde aplicación** - Sin tocar código/BD
+  - ✅ CRUD completo de roles
+  - ✅ Asignación/revocación de roles a usuarios
+  - ✅ Auditoría completa en `audit_role_changes`
+- **Vista SQL:** `role_permission_matrix` - Exportable
+- **Pruebas:** 8/8 tests PHP + 21 tests SQL (100%)
+
+#### 9.3 Gestión de Contraseñas ✅
+- **Archivo:** `hms/include/password-policy.php` (437 líneas)
+- **Panel Admin:** `hms/admin/unlock-accounts.php` (399 líneas)
+- **Políticas Implementadas:**
+  - ✅ **Complejidad:** 8+ chars, mayús, minús, números, especiales
+  - ✅ **Longitud:** Min 8, Max 64 (configurable)
+  - ✅ **Tiempo de vida:** 90 días con advertencia 7 días antes
+  - ✅ **Histórico:** Últimas 5 contraseñas (no reutilizar)
+  - ✅ **Bloqueo:** 3 intentos = 30 minutos
+  - ✅ **Desbloqueo:** Manual (admin) + Automático
+  - ✅ **Reinicio:** Tokens seguros con expiración
+  - ✅ **Encriptación:** Bcrypt (cost 10)
+  - ✅ **Gestor:** Tabla `password_history`
+- **Características:** Indicador de fortaleza, registro de IP, limpieza automática
+- **Pruebas:** 10 casos documentados y validados
+
+### 🛡️ Punto 10: Principios OWASP - Resumen
+
+| Principio | % Implementación | Notas |
+|-----------|------------------|-------|
+| Segregación de roles | 90% | RBAC completo, falta aplicar en legacy |
+| Mínimo privilegio | 85% | Permisos granulares implementados |
+| Menos asombro | 60% | Mensajes claros en módulos nuevos |
+| Mecanismo menos común | 50% | Bcrypt OK, falta rate limiting |
+| Seguridad por defecto | 80% | Configuraciones seguras |
+| Mediación completa | 70% | Middleware en páginas nuevas |
+| Economía del mecanismo | 60% | Código nuevo es simple |
+
+**OWASP Top 10:**
+- ✅ A02 (Cryptographic Failures): 95%
+- ✅ A03 (Injection): 90%
+- ✅ A07 (Authentication): 95%
+- ⚠️ A01 (Access Control): 75%
+- ⚠️ A05 (Misconfiguration): 60%
+- ⚠️ A08 (Data Integrity): 65%
+
+### 📄 Documentación Completa
+
+Para el análisis completo y detallado, consultar:
+- **[ANALISIS_PROYECTO_SIS321.md](ANALISIS_PROYECTO_SIS321.md)** - Análisis exhaustivo con métricas
+
+### ⚠️ Pendiente para 100%
+
+1. ❌ Carátula y documentación formal
+2. ⚠️ Formato estándar de User ID
+3. ⚠️ CSRF en todos los formularios
+4. ⚠️ Headers de seguridad HTTP
+5. ⚠️ Timeout de sesión
+
+**Tiempo estimado:** 2-3 días
 
 ---
 

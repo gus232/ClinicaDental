@@ -36,7 +36,6 @@ package-lock.json
 # ============================================
 # Configuration Files (seguridad)
 # ============================================
-/hms/include/config.php
 *.env
 .env.local
 .env.production
