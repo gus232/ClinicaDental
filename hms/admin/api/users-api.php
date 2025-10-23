@@ -52,7 +52,7 @@ if (!isset($_SESSION['id']) || strlen($_SESSION['id']) == 0) {
 }
 
 // Verificar permiso de gestión de usuarios
-if (!hasPermission('manage_users')) {
+if (!hasPermission('view_users')) {
     http_response_code(403);
     echo json_encode([
         'success' => false,
@@ -143,9 +143,10 @@ switch ($action) {
     // ========================================================================
     // GET USER BY ID
     // ========================================================================
+    case 'get':
     case 'get_user':
         try {
-            $user_id = intval($_GET['user_id'] ?? $_POST['user_id'] ?? 0);
+            $user_id = intval($_GET['id'] ?? $_GET['user_id'] ?? $_POST['user_id'] ?? 0);
 
             if ($user_id <= 0) {
                 throw new Exception('ID de usuario inválido');
@@ -154,6 +155,13 @@ switch ($action) {
             $user = $userManager->getUserById($user_id);
 
             if ($user) {
+                // Obtener roles del usuario
+                $roles = $userManager->getUserRoles($user_id);
+                $role_ids = array_column($roles, 'id');
+
+                $user['role_ids'] = implode(',', $role_ids);
+                $user['roles'] = $roles;
+
                 echo json_encode([
                     'success' => true,
                     'data' => $user

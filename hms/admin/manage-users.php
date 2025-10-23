@@ -62,24 +62,57 @@ if (isset($_POST['action']) && $_POST['action'] == 'update' && hasPermission('ed
         'status' => $_POST['status']
     ];
 
-    $result = $userManager->updateUser($user_id, $data, 'Usuario actualizado desde panel de administración');
-    if ($result['success']) {
-        // Actualizar roles si se modificaron
-        if (isset($_POST['roles'])) {
-            // Primero revocar todos los roles actuales
-            $current_roles = $userManager->getUserRoles($user_id);
-            $current_role_ids = array_column($current_roles, 'id');
-            if (!empty($current_role_ids)) {
-                $userManager->revokeRoles($user_id, $current_role_ids);
-            }
-            // Asignar nuevos roles
-            if (!empty($_POST['roles'])) {
-                $userManager->assignRoles($user_id, $_POST['roles']);
-            }
+    // Determinar si hay cambios reales
+    $has_data_changes = false;
+    $current_user_data = $userManager->getUserById($user_id);
+    
+    if ($current_user_data) {
+        if ($current_user_data['full_name'] != $data['full_name'] ||
+            $current_user_data['email'] != $data['email'] ||
+            $current_user_data['status'] != $data['status']) {
+            $has_data_changes = true;
         }
-        $success_msg = $result['message'];
+    }
+
+    // Actualizar datos básicos solo si hay cambios
+    if ($has_data_changes) {
+        $result = $userManager->updateUser($user_id, $data, 'Usuario actualizado desde panel de administración');
+        if (!$result['success']) {
+            $error_msg = $result['message'];
+        }
+    }
+
+    // Actualizar roles si se enviaron
+    $roles_updated = false;
+    if (isset($_POST['roles'])) {
+        $new_role_ids = !empty($_POST['roles']) ? array_map('intval', $_POST['roles']) : [];
+        $current_roles = $userManager->getUserRoles($user_id);
+        $current_role_ids = !empty($current_roles) ? array_map('intval', array_column($current_roles, 'id')) : [];
+
+        // Calcular diferencias
+        $roles_to_add = array_diff($new_role_ids, $current_role_ids);
+        $roles_to_remove = array_diff($current_role_ids, $new_role_ids);
+
+        // Aplicar cambios de roles
+        if (!empty($roles_to_remove)) {
+            $userManager->revokeRoles($user_id, array_values($roles_to_remove), 'Roles actualizados desde panel');
+            $roles_updated = true;
+        }
+        if (!empty($roles_to_add)) {
+            $userManager->assignRoles($user_id, array_values($roles_to_add), 'Roles actualizados desde panel');
+            $roles_updated = true;
+        }
+    }
+
+    // Mensaje final
+    if ($has_data_changes && $roles_updated) {
+        $success_msg = 'Usuario y roles actualizados exitosamente';
+    } elseif ($has_data_changes) {
+        $success_msg = 'Usuario actualizado exitosamente';
+    } elseif ($roles_updated) {
+        $success_msg = 'Roles actualizados exitosamente';
     } else {
-        $error_msg = $result['message'];
+        $error_msg = 'No se realizaron cambios';
     }
 }
 
@@ -103,15 +136,20 @@ $search = $_GET['search'] ?? '';
 $filter_status = $_GET['status'] ?? '';
 $filter_type = $_GET['type'] ?? '';
 
-// Obtener usuarios
+// Obtener usuarios con filtros
 if (!empty($search) || !empty($filter_status) || !empty($filter_type)) {
-    $users = $userManager->searchUsers($search, [
-        'status' => $filter_status,
-        'user_type' => $filter_type,
-        'limit' => 100
-    ]);
+    // Construir filtros solo con valores no vacíos
+    $filters = ['limit' => 100];
+    if (!empty($filter_status)) {
+        $filters['status'] = $filter_status;
+    }
+    if (!empty($filter_type)) {
+        $filters['user_type'] = $filter_type;
+    }
+    $users = $userManager->searchUsers($search, $filters);
 } else {
-    $users = $userManager->getAllUsers();
+    // Si no hay filtros, obtener todos los usuarios
+    $users = $userManager->getAllUsers(100);
 }
 
 // Obtener estadísticas
@@ -301,20 +339,19 @@ $all_roles = $rbac->getAllRoles();
                     <div class="container-fluid container-fullw bg-white">
                         <div class="row search-box">
                             <div class="col-md-4">
-                                <form method="GET" class="form-inline">
-                                    <div class="input-group" style="width: 100%;">
-                                        <input type="text"
-                                               name="search"
-                                               class="form-control"
-                                               placeholder="Buscar por nombre o email..."
-                                               value="<?php echo htmlspecialchars($search); ?>">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-primary" type="submit">
-                                                <i class="fa fa-search"></i> Buscar
-                                            </button>
-                                        </span>
-                                    </div>
-                                </form>
+                                <div class="input-group" style="width: 100%;">
+                                    <input type="text"
+                                           name="search"
+                                           id="searchInput"
+                                           class="form-control"
+                                           placeholder="Buscar por nombre o email..."
+                                           value="<?php echo htmlspecialchars($search); ?>">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-primary" type="button" onclick="applyFilter()">
+                                            <i class="fa fa-search"></i> Buscar
+                                        </button>
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <select class="form-control" id="filterStatus" onchange="applyFilter()">
@@ -492,8 +529,9 @@ $all_roles = $rbac->getAllRoles();
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="required">Contraseña</label>
-                                    <input type="password" name="password" class="form-control" required minlength="8">
+                                    <input type="password" name="password" id="create_password" class="form-control" required minlength="8">
                                     <small class="text-muted">Mínimo 8 caracteres, incluir mayúsculas, minúsculas, números y símbolos</small>
+                                    <div id="password_strength" style="margin-top: 5px;"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -622,15 +660,97 @@ $all_roles = $rbac->getAllRoles();
     <script>
         jQuery(document).ready(function() {
             Main.init();
+
+            // Validación de contraseña en tiempo real
+            $('#create_password').on('keyup', function() {
+                validatePassword($(this).val());
+            });
+
+            // Validar antes de enviar formulario
+            $('#createUserForm').on('submit', function(e) {
+                var password = $('#create_password').val();
+                if (!isPasswordValid(password)) {
+                    e.preventDefault();
+                    Swal.fire('Error', 'La contraseña no cumple con las políticas de seguridad', 'error');
+                    return false;
+                }
+            });
         });
+
+        function validatePassword(password) {
+            var strength = 0;
+            var feedback = [];
+
+            // Verificar longitud mínima
+            if (password.length >= 8) {
+                strength += 20;
+            } else {
+                feedback.push('Mínimo 8 caracteres');
+            }
+
+            // Verificar mayúsculas
+            if (/[A-Z]/.test(password)) {
+                strength += 20;
+            } else {
+                feedback.push('Al menos una mayúscula');
+            }
+
+            // Verificar minúsculas
+            if (/[a-z]/.test(password)) {
+                strength += 20;
+            } else {
+                feedback.push('Al menos una minúscula');
+            }
+
+            // Verificar números
+            if (/[0-9]/.test(password)) {
+                strength += 20;
+            } else {
+                feedback.push('Al menos un número');
+            }
+
+            // Verificar símbolos
+            if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                strength += 20;
+            } else {
+                feedback.push('Al menos un símbolo (!@#$...)');
+            }
+
+            // Mostrar retroalimentación
+            var html = '';
+            if (strength < 100) {
+                html = '<small class="text-danger">Falta: ' + feedback.join(', ') + '</small>';
+            } else {
+                html = '<small class="text-success"><i class="fa fa-check"></i> Contraseña válida</small>';
+            }
+            $('#password_strength').html(html);
+
+            return strength === 100;
+        }
+
+        function isPasswordValid(password) {
+            return password.length >= 8 &&
+                   /[A-Z]/.test(password) &&
+                   /[a-z]/.test(password) &&
+                   /[0-9]/.test(password) &&
+                   /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        }
 
         // Función para aplicar filtros
         function applyFilter() {
+            var search = document.getElementById('searchInput').value;
             var status = document.getElementById('filterStatus').value;
             var type = document.getElementById('filterType').value;
-            var url = 'manage-users.php?';
-            if (status) url += 'status=' + status + '&';
-            if (type) url += 'type=' + type;
+
+            var params = [];
+            if (search) params.push('search=' + encodeURIComponent(search));
+            if (status) params.push('status=' + status);
+            if (type) params.push('type=' + type);
+
+            var url = 'manage-users.php';
+            if (params.length > 0) {
+                url += '?' + params.join('&');
+            }
             window.location.href = url;
         }
 

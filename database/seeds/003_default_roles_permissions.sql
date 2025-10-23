@@ -19,14 +19,14 @@ USE hms_v2;
 
 INSERT INTO permission_categories (category_name, display_name, description, icon, sort_order) VALUES
 ('users', 'Gestión de Usuarios', 'Permisos relacionados con la administración de usuarios', 'fa-users', 1),
-('patients', 'Gestión de Pacientes', 'Permisos para manejo de pacientes', 'fa-user-injured', 2),
+('patients', 'Gestión de Pacientes', 'Permisos para manejo de pacientes', 'fa-wheelchair', 2),
 ('doctors', 'Gestión de Doctores', 'Permisos para manejo de doctores', 'fa-user-md', 3),
-('appointments', 'Gestión de Citas', 'Permisos para manejo de citas médicas', 'fa-calendar-check', 4),
-('medical_records', 'Registros Médicos', 'Permisos para historiales médicos', 'fa-file-medical', 5),
-('billing', 'Facturación', 'Permisos para manejo de facturación', 'fa-file-invoice-dollar', 6),
-('reports', 'Reportes', 'Permisos para generación de reportes', 'fa-chart-bar', 7),
+('appointments', 'Gestión de Citas', 'Permisos para manejo de citas médicas', 'fa-calendar', 4),
+('medical_records', 'Registros Médicos', 'Permisos para historiales médicos', 'fa-file-text-o', 5),
+('billing', 'Facturación', 'Permisos para manejo de facturación', 'fa-usd', 6),
+('reports', 'Reportes', 'Permisos para generación de reportes', 'fa-bar-chart', 7),
 ('system', 'Configuración del Sistema', 'Permisos de administración del sistema', 'fa-cogs', 8),
-('security', 'Seguridad', 'Permisos de auditoría y seguridad', 'fa-shield-alt', 9);
+('security', 'Seguridad', 'Permisos de auditoría y seguridad', 'fa-shield', 9);
 
 -- ============================================================================
 -- 2. ROLES DEL SISTEMA
