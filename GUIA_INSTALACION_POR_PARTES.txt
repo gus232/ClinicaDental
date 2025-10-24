@@ -1,0 +1,99 @@
+================================================================================
+🔧 INSTALACIÓN DE STORED PROCEDURES POR PARTES
+================================================================================
+
+Debido a que el archivo completo dio problemas, vamos a instalar cada 
+procedure por separado. Es MÁS LENTO pero 100% SEGURO.
+
+================================================================================
+📋 PROCEDIMIENTO COMPLETO
+================================================================================
+
+PASO 1: Abre phpMyAdmin
+   → http://localhost/phpmyadmin
+
+PASO 2: Selecciona la base de datos "hms_v2" en el panel izquierdo
+
+PASO 3: Haz clic en la pestaña "SQL" arriba
+
+================================================================================
+
+AHORA VAS A EJECUTAR 3 ARCHIVOS, UNO POR UNO:
+
+================================================================================
+📄 ARCHIVO 1: SP_01_create_user_with_audit.sql
+================================================================================
+
+1. Abre el archivo: SP_01_create_user_with_audit.sql
+2. Selecciona TODO (Ctrl+A)
+3. Copia (Ctrl+C)
+4. Pega en phpMyAdmin (Ctrl+V)
+5. Presiona "Continuar" / "Go"
+6. Deberías ver: ✅ "Procedure create_user_with_audit instalado correctamente"
+
+================================================================================
+📄 ARCHIVO 2: SP_02_update_user_with_history.sql
+================================================================================
+
+1. LIMPIA el cuadro de texto en phpMyAdmin (borra todo)
+2. Abre el archivo: SP_02_update_user_with_history.sql
+3. Selecciona TODO (Ctrl+A)
+4. Copia (Ctrl+C)
+5. Pega en phpMyAdmin (Ctrl+V)
+6. Presiona "Continuar" / "Go"
+7. Deberías ver: ✅ "Procedure update_user_with_history instalado correctamente"
+
+================================================================================
+📄 ARCHIVO 3: SP_03_search_users.sql (OPCIONAL)
+================================================================================
+
+Este ya fue instalado correctamente, pero si quieres asegurarte:
+
+1. LIMPIA el cuadro de texto en phpMyAdmin
+2. Abre el archivo: SP_03_search_users.sql
+3. Selecciona TODO (Ctrl+A)
+4. Copia (Ctrl+C)
+5. Pega en phpMyAdmin (Ctrl+V)
+6. Presiona "Continuar" / "Go"
+7. Deberías ver: ✅ "Procedure search_users instalado correctamente"
+
+================================================================================
+✅ VERIFICACIÓN FINAL
+================================================================================
+
+Después de instalar los 3 procedures, ejecuta esta consulta en phpMyAdmin:
+
+   SELECT ROUTINE_NAME 
+   FROM INFORMATION_SCHEMA.ROUTINES 
+   WHERE ROUTINE_SCHEMA = 'hms_v2' 
+   AND ROUTINE_NAME IN ('create_user_with_audit', 'update_user_with_history', 'search_users');
+
+Deberías ver 3 resultados:
+   ✓ create_user_with_audit
+   ✓ update_user_with_history
+   ✓ search_users
+
+================================================================================
+🎯 PRUEBA TU SISTEMA
+================================================================================
+
+Ve a: http://localhost/hospital/hms/admin/manage-users.php
+
+Intenta:
+   ✓ Crear un nuevo usuario
+   ✓ Modificar un usuario existente
+   ✓ Eliminar un usuario
+
+¡El error debería haber desaparecido!
+
+================================================================================
+❓ SI TIENES PROBLEMAS
+================================================================================
+
+1. Asegúrate de ejecutar los archivos EN ORDEN (1, 2, 3)
+2. Limpia el cuadro de texto entre cada archivo
+3. Espera a que termine cada ejecución antes de continuar
+4. Si ves errores de sintaxis, copia EXACTAMENTE desde el archivo
+5. No agregues ni quites espacios, saltos de línea o caracteres
+
+================================================================================

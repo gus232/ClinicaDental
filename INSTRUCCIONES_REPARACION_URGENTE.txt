@@ -1,0 +1,79 @@
+================================================================================
+🚨 SOLUCIÓN AL ERROR: "PROCEDURE update_user_with_history does not exist"
+================================================================================
+
+PROBLEMA:
+Los stored procedures necesarios no están instalados en tu base de datos.
+
+SOLUCIÓN (Sigue estos pasos EXACTAMENTE):
+================================================================================
+
+PASO 1: Asegúrate que XAMPP esté ejecutándose
+   - Apache debe estar corriendo (luz verde)
+   - MySQL debe estar corriendo (luz verde)
+
+PASO 2: Abre phpMyAdmin
+   1. Abre tu navegador
+   2. Ve a: http://localhost/phpmyadmin
+   3. Deberías ver la interfaz de phpMyAdmin
+
+PASO 3: Selecciona la base de datos
+   1. En el panel izquierdo, haz clic en "hms_v2"
+   2. La base de datos debería resaltarse en azul
+
+PASO 4: Ejecuta el script SQL
+   1. En la parte superior, haz clic en la pestaña "SQL"
+   2. Abre el archivo: INSTALAR_STORED_PROCEDURES_URGENTE.sql
+   3. Copia TODO su contenido (Ctrl+A, Ctrl+C)
+   4. Pégalo en el cuadro de texto grande de phpMyAdmin (Ctrl+V)
+   5. Presiona el botón "Continuar" (o "Go") en la parte inferior
+
+PASO 5: Verifica que funcionó
+   - Deberías ver mensajes en verde diciendo que se crearon los procedures
+   - Al final verás una tabla mostrando 3 stored procedures:
+     ✓ create_user_with_audit
+     ✓ update_user_with_history
+     ✓ search_users
+
+PASO 6: Prueba tu sistema
+   1. Regresa a tu sistema de gestión de usuarios
+   2. Intenta crear, modificar o eliminar un usuario
+   3. El error debería haber desaparecido
+
+================================================================================
+
+🔍 ¿POR QUÉ PASÓ ESTO?
+
+Los stored procedures son funciones especiales de la base de datos que se 
+ejecutan en el servidor MySQL. Estos no estaban instalados en tu base de 
+datos, por lo que cuando el sistema PHP intentaba llamarlos, MySQL respondía 
+con el error "does not exist" (no existe).
+
+Tu base de datos NO ha sido borrada ni modificada. Solo faltaban estas 
+funciones especiales.
+
+================================================================================
+
+❓ SI TIENES PROBLEMAS:
+
+1. Verifica que la base de datos se llame exactamente "hms_v2"
+2. Si el nombre es diferente, edita la línea 12 del archivo SQL:
+   Cambia: USE hms_v2;
+   Por:    USE tu_nombre_de_bd;
+
+3. Si ves errores de sintaxis, asegúrate de copiar TODO el archivo
+   desde la primera línea hasta la última
+
+================================================================================
+
+✅ DESPUÉS DE LA REPARACIÓN:
+
+Tu sistema debería funcionar normalmente para:
+- Crear nuevos usuarios
+- Modificar usuarios existentes
+- Eliminar usuarios
+- Buscar usuarios
+
+Todos los datos existentes están intactos.
+
+================================================================================

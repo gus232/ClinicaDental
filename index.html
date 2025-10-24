@@ -3,60 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>Clínica Dental Muelitas</title>
-    <link href="https://fonts.googleapis.com/css?family=Ropa+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Ropa+Sans:400,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/responsiveslides.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
         body {
             font-family: 'Ropa Sans', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f8f8f8;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
-        }
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #007bff;
-        }
-        .login-container .form-group {
-            margin-bottom: 20px;
-        }
-        .login-container .btn-primary {
-            width: 100%;
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .login-container .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004a99;
-        }
-        .login-container .text-danger {
-            margin-top: 10px;
-        }
-        .login-container .text-center {
-            margin-top: 20px;
-        }
-        .login-container .logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .login-container .logo img {
-            max-width: 150px;
-            height: auto;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .header {
-            background-color: #eef4ef;
-            padding: 20px 0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 18px 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,168,179,0.1);
         }
 
         .wrap {
@@ -76,11 +56,19 @@
         }
 
         .logo a {
-            font-size: 36px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 700;
             text-decoration: none;
-            color: #0a0a0a;
-            margin-left: 20px;
+            background: linear-gradient(135deg, #00a8b3 0%, #0088cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-left: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logo a:hover {
+            transform: translateY(-1px);
         }
 
         .top-nav ul {
@@ -88,32 +76,86 @@
             margin: 0;
             padding: 0;
             display: flex;
+            gap: 8px;
         }
 
         .top-nav ul li {
-            margin-left: 20px;
+            margin: 0;
         }
 
         .top-nav ul li a {
             text-decoration: none;
-            color: #0a0a0a;
-            font-size: 18px;
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 10px 18px;
+            border-radius: 8px;
+            display: inline-block;
         }
 
         .top-nav ul li a:hover {
-            text-decoration: underline;
+            background-color: #00a8b3;
+            color: white;
+        }
+
+        .top-nav ul li.active a {
+            background-color: #00a8b3;
+            color: white;
         }
 
         .image-slider {
             position: relative;
-            max-height: 600px;
+            height: 600px;
+            width: 100%;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .image-slider::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        
+        .clear {
+            clear: both;
+            height: 0;
+            line-height: 0;
+            font-size: 0;
+        }
+
+        .rslides {
+            height: 600px;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none;
+            max-width: none !important;
+        }
+
+        .rslides li {
+            height: 600px;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            left: 0 !important;
+        }
+        
+        .rslides li:first-child {
+            float: none !important;
         }
 
         .rslides li img {
-            width: 100%;
-            max-height: 600px;
+            width: 100% !important;
+            height: 600px !important;
             object-fit: cover;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            float: none !important;
+            max-width: none !important;
+            border: none !important;
         }
 
         .description-overlay {
@@ -124,76 +166,222 @@
             text-align: center;
             color: #fff;
             z-index: 1;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 10px;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(12px);
+            padding: 40px 48px;
+            border-radius: 20px;
+            max-width: 900px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
         .description-overlay h2 {
-            font-size: 36px;
-            margin-bottom: 10px;
+            font-size: 44px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            animation: fadeInDown 0.8s ease;
         }
 
         .description-overlay p {
-            font-size: 24px;
+            font-size: 18px;
+            line-height: 1.7;
+            opacity: .95;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cta-group {
+            margin-top: 28px;
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            animation: fadeInUp 1.2s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            z-index: 0;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00a8b3 0%, #0088cc 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,168,179,0.4);
+            position: relative;
+        }
+
+        .btn-primary:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0,168,179,0.5);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,.9);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .btn-outline:hover { 
+            background: rgba(255,255,255,.25);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,255,255,0.3);
+            color: #fff;
         }
 
         .content-grids {
-            padding: 40px 0;
+            padding: 60px 0 80px;
+            background: transparent;
         }
 
         .listview_1_of_3 {
             display: flex;
-            margin-bottom: 30px;
+            margin: 0 auto;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,168,179,0.1);
+        }
+
+        .listview_1_of_3:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,168,179,0.2);
         }
 
         .listimg {
             flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .listimg img {
-            max-width: 100%;
-            border-radius: 10px;
+            max-width: 140px;
+            filter: drop-shadow(0 4px 12px rgba(0,168,179,0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .listview_1_of_3:hover .listimg img {
+            transform: scale(1.1) rotate(5deg);
         }
 
         .text {
             flex: 2;
-            padding-left: 20px;
+            padding-left: 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
         .text h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            font-weight: 700;
         }
 
         .text p {
             font-size: 18px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            color: #5a6c7d;
+            line-height: 1.6;
+        }
+
+        .button {
+            display: flex;
+            gap: 12px;
         }
 
         .button span a {
             display: inline-block;
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            padding: 12px 28px;
             color: #fff;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
         }
 
-        .button span a:hover {
-            background-color: #45a049;
+        .button span:first-child a {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+        }
+
+        .button span:first-child a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76,175,80,0.4);
+        }
+
+        .button span:last-child a {
+            background: linear-gradient(135deg, #00a8b3 0%, #0088cc 100%);
+            box-shadow: 0 4px 15px rgba(0,168,179,0.3);
+        }
+
+        .button span:last-child a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,168,179,0.4);
         }
 
         .footer {
-            background-color: #2e38f7;
-            padding: 20px 0;
+            background: linear-gradient(135deg, #1a1f3a 0%, #0a0f2d 100%);
+            padding: 32px 0;
             color: #fff;
             text-align: center;
-            box-shadow: 0 -4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(0,168,179,0.2);
         }
 
         .footer-left {
@@ -206,30 +394,27 @@
             display: flex;
             list-style: none;
             padding: 0;
+            gap: 16px;
         }
 
         .footer-left ul li {
-            margin-right: 20px;
+            margin: 0;
         }
 
         .footer-left ul li a {
             text-decoration: none;
-            color: #fff;
-            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
 
         .footer-left ul li a:hover {
-            text-decoration: underline;
-        }
-
-        .footer-left .button span a {
-            background-color: #fff;
-            color: #4CAF50;
-            padding: 10px 20px;
-        }
-
-        .footer-left .button span a:hover {
-            background-color: #f1f1f1;
+            color: #fff;
+            background: rgba(0,168,179,0.2);
+            transform: translateY(-2px);
         }
     </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
@@ -249,14 +434,14 @@
         <div class="wrap">
             <div class="logo">
                 <div style="display: flex; align-items: center;">
-                    <img src="images/MUELITAS.jpg" alt="Clínica Dental Muelitas">
+                    <img src="images/MUELITAS.jpg" alt="Clínica Dental Muelitas" style="border-radius:8px;">
                     <a href="index.html">Clínica Dental Muelitas</a>
                 </div>
                 <div class="top-nav">
                     <ul>
                         <li class="active"><a href="index.html">Inicio</a></li>
                         <li><a href="contact.php">Contacto</a></li>
-                        <li><a href="hms/login.php">iniciar sesion</a></li>
+                        <li><a href="hms/login.php">Iniciar sesión</a></li>
                     </ul>
                 </div>
             </div>
@@ -265,22 +450,34 @@
 
     <div class="image-slider">
         <ul class="rslides" id="slider1">
-            <li><img src="images/dental1.jpg" alt="">
+            <li><img src="images/dental1.jpg" alt="Servicio odontológico 1">
                 <div class="description-overlay">
                     <h2>¡Bienvenidos a Clínica Dental Muelitas!</h2>
                     <p>Somos una clínica dental dedicada a proporcionar servicios de odontología de alta calidad para toda la familia. Nuestro equipo de profesionales altamente cualificados se esfuerza por ofrecer atención personalizada y efectiva para mantener la salud bucal de nuestros pacientes.</p>
+                    <div class="cta-group">
+                        <a class="btn btn-primary" href="hms/login.php">Iniciar sesión</a>
+                        <a class="btn btn-outline" href="hms/registration.php">Registrarse</a>
+                    </div>
                 </div>
             </li>
-            <li><img src="images/dental2.jpg" alt="">
+            <li><img src="images/dental2.jpg" alt="Servicio odontológico 2">
                 <div class="description-overlay">
                     <h2>¡Bienvenidos a Clínica Dental Muelitas!</h2>
                     <p>Somos una clínica dental dedicada a proporcionar servicios de odontología de alta calidad para toda la familia. Nuestro equipo de profesionales altamente cualificados se esfuerza por ofrecer atención personalizada y efectiva para mantener la salud bucal de nuestros pacientes.</p>
+                    <div class="cta-group">
+                        <a class="btn btn-primary" href="hms/login.php">Iniciar sesión</a>
+                        <a class="btn btn-outline" href="hms/registration.php">Registrarse</a>
+                    </div>
                 </div>
             </li>
-            <li><img src="images/dental3.jpg" alt="">
+            <li><img src="images/dental3.jpg" alt="Servicio odontológico 3">
                 <div class="description-overlay">
                     <h2>¡Bienvenidos a Clínica Dental Muelitas!</h2>
                     <p>Somos una clínica dental dedicada a proporcionar servicios de odontología de alta calidad para toda la familia. Nuestro equipo de profesionales altamente cualificados se esfuerza por ofrecer atención personalizada y efectiva para mantener la salud bucal de nuestros pacientes.</p>
+                    <div class="cta-group">
+                        <a class="btn btn-primary" href="hms/login.php">Iniciar sesión</a>
+                        <a class="btn btn-outline" href="hms/registration.php">Registrarse</a>
+                    </div>
                 </div>
             </li>
         </ul>
@@ -292,12 +489,15 @@
             <div class="section group">                             
                 <div class="listview_1_of_3 images_1_of_3">
                     <div class="listimg listimg_1_of_2">
-                          <img src="images/grid-img3.png" alt="Pacientes">
+                          <img src="images/grid-img3.png" alt="Pacientes" style="max-width:140px;">
                     </div>
                     <div class="text list_1_of_2">
                           <h3>Pacientes</h3>
                           <p>Regístrate y reserva tu cita</p>
-                          <div class="button"><span><a href="hms/login.php">Haz clic aquí</a></span></div>
+                          <div class="button">
+                            <span><a href="hms/registration.php">Registrarse</a></span>
+                            <span style="margin-left:8px;"><a href="hms/login.php" style="background:#00a8b3;">Iniciar sesión</a></span>
+                          </div>
                     </div>
                 </div>   
             </div>

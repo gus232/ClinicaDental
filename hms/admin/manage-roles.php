@@ -547,6 +547,7 @@ $audit_records = mysqli_query($con, $audit_sql);
             border: 1px solid rgba(255,255,255,0.3);
         }
         
+        
         .permission-list {
             display: none;
             padding: 0;
@@ -615,6 +616,219 @@ $audit_records = mysqli_query($con, $audit_sql);
             font-size: 14px;
             color: #666;
         }
+
+        /* ===================================================================== */
+        /* ESTILOS PARA BOTONES DE ALTERNANCIA DE VISTA */
+        /* ===================================================================== */
+        .matrix-view-toggle {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .matrix-view-toggle .btn {
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+            border: 2px solid #667eea;
+        }
+
+        .matrix-view-toggle .btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .matrix-view-toggle .btn:not(.active) {
+            background: white;
+            color: #667eea;
+            border-color: #667eea;
+        }
+
+        .matrix-view-toggle .btn:not(.active):hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* ===================================================================== */
+        /* ESTILOS PARA MATRIZ DETALLADA CON PERMISOS INDIVIDUALES */
+        /* ===================================================================== */
+        .detailed-matrix-wrapper {
+            display: none; /* Oculta por defecto - se muestra al hacer clic */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .detailed-matrix {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        /* Headers de categoría (horizontales) */
+        .detailed-matrix thead tr.category-row th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-align: center;
+            padding: 18px 8px;
+            border-right: 2px solid rgba(255,255,255,0.3);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detailed-matrix thead tr.category-row th:first-child {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-right: 3px solid white;
+            font-size: 16px;
+            font-weight: 800;
+            padding: 20px 15px;
+            vertical-align: middle;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+        }
+
+        .detailed-matrix thead tr.category-row th:first-child i {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .detailed-matrix thead tr.category-row th i {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        /* Headers de permisos individuales (rotados -90°) */
+        .detailed-matrix thead tr.permission-row th {
+            background: #f8f9fc;
+            height: 250px;
+            width: 100px;
+            max-width: 100px;
+            min-width: 70px;
+            padding: 0;
+            vertical-align: bottom;
+            position: relative;
+            border-right: 1px solid #e0e0e0;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .detailed-matrix thead tr.permission-row th .permission-rotated {
+            transform: rotate(-90deg);
+            transform-origin: bottom left;
+            white-space: nowrap;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            width: 240px;
+            text-align: left;
+            margin-left: -120px;
+        }
+
+        /* Filas de roles */
+        .detailed-matrix tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detailed-matrix tbody tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transform: scale(1.005);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .detailed-matrix tbody td {
+            text-align: center;
+            padding: 10px 5px;
+            vertical-align: middle;
+            border-right: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            min-height: 55px;
+            width: 70px;
+            min-width: 70px;
+            max-width: 70px;
+        }
+
+        .detailed-matrix tbody td:first-child {
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 13px;
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 9;
+            border-right: 3px solid #667eea;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+        }
+
+        .detailed-matrix tbody tr:hover td:first-child {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(255,255,255,1) 100%);
+        }
+
+        /* Íconos de check */
+        .detailed-matrix .check-icon {
+            color: #4CAF50;
+            font-size: 36px;
+            animation: checkPulse 0.3s ease;
+            display: inline-block;
+        }
+
+        @keyframes checkPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .detailed-matrix .no-perm {
+            background: #fafafa;
+            color: #ccc;
+        }
+
+        .detailed-matrix tbody td:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .detailed-matrix tbody td.no-perm:hover {
+            background: #f0f0f0;
+        }
+
+        /* Bordes gruesos entre categorías */
+        .detailed-matrix thead tr.permission-row th.category-border-right {
+            border-right: 3px solid #667eea;
+        }
+
+        .detailed-matrix tbody td.category-border-right {
+            border-right: 3px solid #667eea;
+        }
+
+        /* Tooltip personalizado */
+        .detailed-matrix [title] {
+            cursor: help;
+        }
+
+        
     </style>
 </head>
 <body>
@@ -840,9 +1054,19 @@ $audit_records = mysqli_query($con, $audit_sql);
                             <div role="tabpanel" class="tab-pane" id="tab-matrix">
                                 <div class="row" style="margin-top: 20px;">
                                     <div class="col-md-12">
-                                        <h4><i class="fa fa-table"></i> Matriz de Roles vs Categorías de Permisos</h4>
-                                        <p class="text-muted">Vista panorámica de permisos asignados por rol y categoría</p>
+                                        <h4><i class="fa fa-table"></i> Matriz de Roles vs Permisos</h4>
+                                        <p class="text-muted">Vista panorámica de permisos asignados por rol</p>
                                         <hr>
+
+                                        <!-- Botones de alternancia de vista -->
+                                        <div class="matrix-view-toggle">
+                                            <button type="button" id="btn-summary-view" class="btn btn-primary active">
+                                                <i class="fa fa-th"></i> Vista Resumen
+                                            </button>
+                                            <button type="button" id="btn-detailed-view" class="btn btn-default">
+                                                <i class="fa fa-list-alt"></i> Vista Detallada
+                                            </button>
+                                        </div>
 
                                         <div class="matrix-container">
                                             <div style="overflow-x: auto;">
@@ -933,7 +1157,7 @@ $audit_records = mysqli_query($con, $audit_sql);
                                             </div>
                                         </div>
 
-                                        <!-- Leyenda -->
+                                        <!-- Leyenda Vista Resumen -->
                                         <div class="alert alert-info" style="margin-top: 20px;">
                                             <strong><i class="fa fa-info-circle"></i> Leyenda:</strong>
                                             <ul style="margin-top: 10px; margin-bottom: 0;">
@@ -941,6 +1165,193 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                 <li><span class="text-muted">-</span> = El rol no tiene permisos en esa categoría</li>
                                                 <li>La columna <strong>TOTAL</strong> muestra el número total de permisos del rol</li>
                                                 <li>La fila <strong>TOTAL POR CATEGORÍA</strong> muestra cuántos permisos existen en cada categoría</li>
+                                            </ul>
+                                        </div>
+
+                                        <!-- ========================================================================== -->
+                                        <!-- MATRIZ DETALLADA CON PERMISOS INDIVIDUALES (ROTADOS -90°) -->
+                                        <!-- ========================================================================== -->
+                                        <div class="detailed-matrix-wrapper">
+                                            <?php
+                                            // Preparar datos: Crear matriz de permisos por rol
+                                            $role_permissions_map = [];
+                                            foreach ($all_roles as $role) {
+                                                $role_id = $role['id'];
+                                                $perms_sql = "SELECT permission_id FROM role_permissions WHERE role_id = $role_id";
+                                                $perms_result = mysqli_query($con, $perms_sql);
+                                                $perm_ids = [];
+                                                while ($row = mysqli_fetch_assoc($perms_result)) {
+                                                    $perm_ids[] = (int)$row['permission_id'];
+                                                }
+                                                $role_permissions_map[$role_id] = $perm_ids;
+                                            }
+
+                                            // Definir nombres para los permisos (más descriptivos)
+                                            $permission_abbr = [
+                                                // USUARIOS (module: users)
+                                                'view_users' => 'Ver Usuarios',
+                                                'create_user' => 'Crear Usuario',
+                                                'edit_user' => 'Editar Usuario',
+                                                'delete_user' => 'Eliminar Usuario',
+                                                'manage_user_roles' => 'Gestionar Roles',
+                                                'unlock_accounts' => 'Desbloquear Cuentas',
+                                                'reset_passwords' => 'Resetear Contraseñas',
+                                                'view_user_activity' => 'Ver Actividad',
+                                                // PACIENTES (module: patients)
+                                                'view_patients' => 'Ver Pacientes',
+                                                'view_patient_details' => 'Ver Detalles',
+                                                'create_patient' => 'Registrar Paciente',
+                                                'edit_patient' => 'Editar Paciente',
+                                                'delete_patient' => 'Eliminar Paciente',
+                                                'view_own_patient_data' => 'Ver Mis Datos',
+                                                'export_patient_data' => 'Exportar Datos',
+                                                // DOCTORES (module: doctors)
+                                                'view_doctors' => 'Ver Doctores',
+                                                'create_doctor' => 'Registrar Doctor',
+                                                'edit_doctor' => 'Editar Doctor',
+                                                'delete_doctor' => 'Eliminar Doctor',
+                                                'manage_doctor_schedule' => 'Gestionar Horarios',
+                                                'view_doctor_performance' => 'Ver Rendimiento',
+                                                // CITAS (module: appointments)
+                                                'view_appointments' => 'Ver Citas',
+                                                'view_own_appointments' => 'Ver Mis Citas',
+                                                'create_appointment' => 'Crear Cita',
+                                                'edit_appointment' => 'Editar Cita',
+                                                'cancel_appointment' => 'Cancelar Cita',
+                                                'approve_appointment' => 'Aprobar Cita',
+                                                'reschedule_appointment' => 'Reprogramar Cita',
+                                                // REGISTROS MÉDICOS (module: medical_records)
+                                                'view_medical_records' => 'Ver Registros Médicos',
+                                                'view_own_medical_records' => 'Ver Mi Historial',
+                                                'create_medical_record' => 'Crear Registro',
+                                                'edit_medical_record' => 'Editar Registro',
+                                                'delete_medical_record' => 'Eliminar Registro',
+                                                'view_prescriptions' => 'Ver Recetas',
+                                                'create_prescription' => 'Crear Receta',
+                                                // FACTURACIÓN (module: billing)
+                                                'view_invoices' => 'Ver Facturas',
+                                                'view_own_invoices' => 'Ver Mis Facturas',
+                                                'create_invoice' => 'Crear Factura',
+                                                'edit_invoice' => 'Editar Factura',
+                                                'delete_invoice' => 'Eliminar Factura',
+                                                'process_payment' => 'Procesar Pagos',
+                                                'view_payment_reports' => 'Reportes de Pagos',
+                                                // REPORTES (module: reports)
+                                                'view_reports' => 'Ver Reportes',
+                                                'create_report' => 'Crear Reporte',
+                                                'export_reports' => 'Exportar Reportes',
+                                                'view_analytics' => 'Ver Analíticas',
+                                                'view_audit_logs' => 'Ver Logs Auditoría',
+                                                // SISTEMA (module: system)
+                                                'manage_roles' => 'Gestionar Roles',
+                                                'manage_permissions' => 'Gestionar Permisos',
+                                                'manage_system_settings' => 'Configuración Sistema',
+                                                'manage_password_policies' => 'Políticas Contraseñas',
+                                                'view_system_logs' => 'Ver Logs Sistema',
+                                                'backup_database' => 'Respaldar BD',
+                                                'restore_database' => 'Restaurar BD',
+                                                // SEGURIDAD (module: security)
+                                                'view_security_logs' => 'Ver Logs Seguridad',
+                                                'manage_security_settings' => 'Gestionar Seguridad',
+                                                'view_failed_logins' => 'Ver Intentos Fallidos',
+                                                'manage_session_timeout' => 'Gestionar Timeouts'
+                                            ];
+                                            ?>
+
+                                            <table class="detailed-matrix">
+                                                <thead>
+                                                    <!-- Fila 1: Headers de categorías -->
+                                                    <tr class="category-row">
+                                                        <th rowspan="2">
+                                                            <i class="fa fa-shield"></i><br>
+                                                            ROL
+                                                        </th>
+                                                        <?php foreach ($permission_categories as $cat): ?>
+                                                            <?php
+                                                            $cat_perms_count = count($permissions_by_category[$cat['category_name']] ?? []);
+                                                            ?>
+                                                            <th colspan="<?php echo $cat_perms_count; ?>">
+                                                                <i class="fa <?php echo $cat['icon']; ?>"></i><br>
+                                                                <?php echo strtoupper(htmlspecialchars($cat['display_name'])); ?>
+                                                                <small style="opacity: 0.9; display: block; margin-top: 3px;">(<?php echo $cat_perms_count; ?>)</small>
+                                                            </th>
+                                                        <?php endforeach; ?>
+                                                    </tr>
+
+                                                    <!-- Fila 2: Headers de permisos individuales (rotados) -->
+                                                    <tr class="permission-row">
+                                                        <?php
+                                                        $col_index = 0;
+                                                        foreach ($permission_categories as $cat_index => $cat):
+                                                            $cat_perms = $permissions_by_category[$cat['category_name']] ?? [];
+                                                            $last_perm_index = count($cat_perms) - 1;
+
+                                                            foreach ($cat_perms as $perm_index => $perm):
+                                                                $is_last_in_category = ($perm_index === $last_perm_index);
+                                                                $border_class = $is_last_in_category ? 'category-border-right' : '';
+                                                                $abbr = $permission_abbr[$perm['permission_name']] ?? substr($perm['display_name'], 0, 6);
+                                                        ?>
+                                                            <th class="<?php echo $border_class; ?>"
+                                                                title="<?php echo htmlspecialchars($perm['display_name']) . ' - ' . htmlspecialchars($perm['description']); ?>">
+                                                                <div class="permission-rotated">
+                                                                    <?php echo htmlspecialchars($abbr); ?>
+                                                                </div>
+                                                            </th>
+                                                        <?php
+                                                            endforeach;
+                                                        endforeach;
+                                                        ?>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($all_roles as $role): ?>
+                                                        <?php if ($role['status'] === 'active'): ?>
+                                                        <tr>
+                                                            <td>
+                                                                <strong><?php echo htmlspecialchars($role['display_name']); ?></strong><br>
+                                                                <small class="text-muted" style="font-size: 10px;">
+                                                                    <?php echo htmlspecialchars($role['role_name']); ?>
+                                                                </small>
+                                                            </td>
+                                                            <?php
+                                                            $role_perms = $role_permissions_map[$role['id']] ?? [];
+
+                                                            foreach ($permission_categories as $cat_index => $cat):
+                                                                $cat_perms = $permissions_by_category[$cat['category_name']] ?? [];
+                                                                $last_perm_index = count($cat_perms) - 1;
+
+                                                                foreach ($cat_perms as $perm_index => $perm):
+                                                                    $has_perm = in_array($perm['id'], $role_perms);
+                                                                    $is_last_in_category = ($perm_index === $last_perm_index);
+                                                                    $border_class = $is_last_in_category ? 'category-border-right' : '';
+                                                                    $no_perm_class = !$has_perm ? 'no-perm' : '';
+                                                            ?>
+                                                                <td class="<?php echo $border_class . ' ' . $no_perm_class; ?>"
+                                                                    title="<?php echo htmlspecialchars($perm['display_name']); ?>: <?php echo $has_perm ? 'ASIGNADO' : 'No asignado'; ?>">
+                                                                    <?php if ($has_perm): ?>
+                                                                        <i class="fa fa-check-circle check-icon"></i>
+                                                                    <?php endif; ?>
+                                                                </td>
+                                                            <?php
+                                                                endforeach;
+                                                            endforeach;
+                                                            ?>
+                                                        </tr>
+                                                        <?php endif; ?>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Leyenda Vista Detallada -->
+                                        <div class="alert alert-success detailed-matrix-legend" style="margin-top: 20px; display: none;">
+                                            <strong><i class="fa fa-info-circle"></i> Leyenda Vista Detallada:</strong>
+                                            <ul style="margin-top: 10px; margin-bottom: 0;">
+                                                <li><i class="fa fa-check-circle" style="color: #4CAF50;"></i> = Permiso asignado al rol</li>
+                                                <li>Celda vacía con fondo gris = Permiso NO asignado</li>
+                                                <li>Pasa el cursor sobre cada permiso para ver su nombre completo y descripción</li>
+                                                <li>Los permisos están agrupados por categorías (separadas por líneas gruesas)</li>
+                                                <li>Para editar permisos, usa el botón <span class="label label-warning"><i class="fa fa-key"></i> Permisos</span> en la pestaña "Roles"</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -1327,6 +1738,37 @@ $audit_records = mysqli_query($con, $audit_sql);
     <script>
         jQuery(document).ready(function() {
             Main.init();
+        });
+
+        // ====================================================================
+        // FUNCIÓN PARA ALTERNAR ENTRE VISTA RESUMEN Y VISTA DETALLADA
+        // ====================================================================
+        $('#btn-summary-view').click(function() {
+            // Mostrar vista resumen
+            $('.matrix-container').show();
+            $('.alert.alert-info').show();
+
+            // Ocultar vista detallada
+            $('.detailed-matrix-wrapper').hide();
+            $('.detailed-matrix-legend').hide();
+
+            // Actualizar estilos de botones
+            $(this).addClass('active btn-primary').removeClass('btn-default');
+            $('#btn-detailed-view').removeClass('active btn-primary').addClass('btn-default');
+        });
+
+        $('#btn-detailed-view').click(function() {
+            // Ocultar vista resumen
+            $('.matrix-container').hide();
+            $('.alert.alert-info').hide();
+
+            // Mostrar vista detallada
+            $('.detailed-matrix-wrapper').show();
+            $('.detailed-matrix-legend').show();
+
+            // Actualizar estilos de botones
+            $(this).addClass('active btn-primary').removeClass('btn-default');
+            $('#btn-summary-view').removeClass('active btn-primary').addClass('btn-default');
         });
 
         // Editar rol

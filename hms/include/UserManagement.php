@@ -239,8 +239,17 @@ class UserManagement {
     /**
      * Obtener todos los usuarios (ULTRA-FIXED: sin city, gender)
      */
-    public function getAllUsers($filters = []) {
+    public function getAllUsers($limit = 100, $sort_by = 'full_name', $sort_order = 'ASC', $filters = []) {
         try {
+            // Validar columna de ordenamiento
+            $allowed_columns = ['full_name', 'email', 'user_type', 'status', 'last_login', 'created_at'];
+            if (!in_array($sort_by, $allowed_columns)) {
+                $sort_by = 'full_name';
+            }
+            
+            // Validar dirección de ordenamiento
+            $sort_order = strtoupper($sort_order) === 'DESC' ? 'DESC' : 'ASC';
+            
             $sql = "SELECT u.id, u.full_name, u.email, u.user_type, u.status, u.created_at, u.last_login,
                     GROUP_CONCAT(DISTINCT r.display_name ORDER BY r.priority SEPARATOR ', ') as roles
                     FROM users u
@@ -263,7 +272,11 @@ class UserManagement {
                 $params[] = &$filters['user_type'];
             }
 
-            $sql .= " GROUP BY u.id ORDER BY u.full_name ASC";
+            $sql .= " GROUP BY u.id ORDER BY u." . $sort_by . " " . $sort_order;
+            
+            if ($limit > 0) {
+                $sql .= " LIMIT " . intval($limit);
+            }
 
             $stmt = $this->db->prepare($sql);
 
@@ -301,36 +314,46 @@ class UserManagement {
             }
 
             $success_count = 0;
+            $errors = [];
+            
             foreach ($role_ids as $role_id) {
-                // SP de FASE 2 tiene 4 parámetros, NO usa @result de salida
-                $stmt = $this->db->prepare("CALL assign_role_to_user(?, ?, ?, ?)");
-                $assigned_by = $this->current_user_id ?? 1;
-                $stmt->bind_param("iiis", $user_id, $role_id, $assigned_by, $expires_at);
-                $stmt->execute();
-
-                // El SP devuelve un SELECT con 'success' y 'message'
-                $result = $stmt->get_result();
-                if ($result) {
-                    $row = $result->fetch_assoc();
-                    if ($row && isset($row['success']) && $row['success'] == 1) {
+                try {
+                    // SP tiene 4 parámetros y no devuelve resultado SELECT
+                    $stmt = $this->db->prepare("CALL assign_role_to_user(?, ?, ?, ?)");
+                    $assigned_by = $this->current_user_id ?? 1;
+                    $stmt->bind_param("iiis", $user_id, $role_id, $assigned_by, $expires_at);
+                    
+                    if ($stmt->execute()) {
                         $success_count++;
+                    } else {
+                        $errors[] = "Rol ID $role_id: " . $stmt->error;
                     }
-                }
-                $stmt->close();
+                    
+                    $stmt->close();
 
-                // Liberar resultados adicionales del stored procedure
-                while ($this->db->more_results()) {
-                    $this->db->next_result();
-                    if ($res = $this->db->store_result()) {
-                        $res->free();
+                    // Liberar resultados adicionales del stored procedure
+                    while ($this->db->more_results()) {
+                        $this->db->next_result();
+                        if ($res = $this->db->store_result()) {
+                            $res->free();
+                        }
                     }
+                } catch (Exception $e) {
+                    $errors[] = "Rol ID $role_id: " . $e->getMessage();
                 }
             }
 
-            return [
-                'success' => $success_count > 0,
-                'message' => "Se asignaron $success_count rol(es) exitosamente"
-            ];
+            if ($success_count > 0) {
+                return [
+                    'success' => true,
+                    'message' => "Se asignaron $success_count rol(es) exitosamente" . (!empty($errors) ? '. Errores: ' . implode(', ', $errors) : '')
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'No se pudo asignar ningún rol. ' . implode(', ', $errors)
+                ];
+            }
 
         } catch (Exception $e) {
             error_log("Error en assignRoles: " . $e->getMessage());
@@ -354,36 +377,46 @@ class UserManagement {
             }
 
             $success_count = 0;
+            $errors = [];
+            
             foreach ($role_ids as $role_id) {
-                // SP de FASE 2 tiene 3 parámetros, NO usa @result de salida
-                $stmt = $this->db->prepare("CALL revoke_role_from_user(?, ?, ?)");
-                $revoked_by = $this->current_user_id ?? 1;
-                $stmt->bind_param("iii", $user_id, $role_id, $revoked_by);
-                $stmt->execute();
-
-                // El SP devuelve un SELECT con 'success' y 'message'
-                $result = $stmt->get_result();
-                if ($result) {
-                    $row = $result->fetch_assoc();
-                    if ($row && isset($row['success']) && $row['success'] == 1) {
+                try {
+                    // SP tiene 3 parámetros y no devuelve resultado SELECT
+                    $stmt = $this->db->prepare("CALL revoke_role_from_user(?, ?, ?)");
+                    $revoked_by = $this->current_user_id ?? 1;
+                    $stmt->bind_param("iii", $user_id, $role_id, $revoked_by);
+                    
+                    if ($stmt->execute()) {
                         $success_count++;
+                    } else {
+                        $errors[] = "Rol ID $role_id: " . $stmt->error;
                     }
-                }
-                $stmt->close();
+                    
+                    $stmt->close();
 
-                // Liberar resultados adicionales del stored procedure
-                while ($this->db->more_results()) {
-                    $this->db->next_result();
-                    if ($res = $this->db->store_result()) {
-                        $res->free();
+                    // Liberar resultados adicionales del stored procedure
+                    while ($this->db->more_results()) {
+                        $this->db->next_result();
+                        if ($res = $this->db->store_result()) {
+                            $res->free();
+                        }
                     }
+                } catch (Exception $e) {
+                    $errors[] = "Rol ID $role_id: " . $e->getMessage();
                 }
             }
 
-            return [
-                'success' => $success_count > 0,
-                'message' => "Se revocaron $success_count rol(es) exitosamente"
-            ];
+            if ($success_count > 0) {
+                return [
+                    'success' => true,
+                    'message' => "Se revocaron $success_count rol(es) exitosamente" . (!empty($errors) ? '. Errores: ' . implode(', ', $errors) : '')
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'No se pudo revocar ningún rol. ' . implode(', ', $errors)
+                ];
+            }
 
         } catch (Exception $e) {
             error_log("Error en revokeRoles: " . $e->getMessage());
@@ -424,19 +457,68 @@ class UserManagement {
     }
 
     /**
-     * Buscar usuarios con filtros (ULTRA-FIXED: sin gender, city)
+     * Buscar usuarios con filtros (ULTRA-FIXED: sin gender, city, con ordenamiento)
      */
     public function searchUsers($search_term = '', $filters = []) {
         try {
-            $stmt = $this->db->prepare("CALL search_users(?, ?, ?, ?, ?, ?)");
-
-            $role_id = $filters['role_id'] ?? null;
-            $status = $filters['status'] ?? null;
-            $user_type = $filters['user_type'] ?? null;
+            // Validar columna de ordenamiento
+            $allowed_columns = ['full_name', 'email', 'user_type', 'status', 'last_login', 'created_at'];
+            $sort_by = $filters['sort_by'] ?? 'full_name';
+            if (!in_array($sort_by, $allowed_columns)) {
+                $sort_by = 'full_name';
+            }
+            
+            // Validar dirección de ordenamiento
+            $sort_order = isset($filters['sort_order']) && strtoupper($filters['sort_order']) === 'DESC' ? 'DESC' : 'ASC';
+            
+            // Construir query dinámicamente (no podemos usar SP por el ordenamiento dinámico)
+            $sql = "SELECT DISTINCT u.id, u.full_name, u.email, u.user_type, u.status, u.created_at, u.last_login,
+                    GROUP_CONCAT(DISTINCT r.display_name ORDER BY r.priority SEPARATOR ', ') as roles
+                    FROM users u
+                    LEFT JOIN user_roles ur ON u.id = ur.user_id AND ur.is_active = 1
+                    LEFT JOIN roles r ON ur.role_id = r.id AND r.status = 'active'
+                    WHERE 1=1";
+            
+            $types = "";
+            $params = [];
+            
+            // Búsqueda por término
+            if (!empty($search_term)) {
+                $sql .= " AND (u.full_name LIKE ? OR u.email LIKE ?)";
+                $types .= "ss";
+                $search_pattern = '%' . $search_term . '%';
+                $params[] = &$search_pattern;
+                $params[] = &$search_pattern;
+            }
+            
+            // Filtro por status
+            if (isset($filters['status']) && $filters['status'] !== '') {
+                $sql .= " AND u.status = ?";
+                $types .= "s";
+                $params[] = &$filters['status'];
+            }
+            
+            // Filtro por user_type
+            if (isset($filters['user_type']) && $filters['user_type'] !== '') {
+                $sql .= " AND u.user_type = ?";
+                $types .= "s";
+                $params[] = &$filters['user_type'];
+            }
+            
+            $sql .= " GROUP BY u.id ORDER BY u." . $sort_by . " " . $sort_order;
+            
             $limit = $filters['limit'] ?? 50;
-            $offset = $filters['offset'] ?? 0;
-
-            $stmt->bind_param("sissii", $search_term, $role_id, $status, $user_type, $limit, $offset);
+            if ($limit > 0) {
+                $sql .= " LIMIT " . intval($limit);
+            }
+            
+            $stmt = $this->db->prepare($sql);
+            
+            if (!empty($params)) {
+                array_unshift($params, $types);
+                call_user_func_array([$stmt, 'bind_param'], $params);
+            }
+            
             $stmt->execute();
             $result = $stmt->get_result();
 
@@ -446,14 +528,6 @@ class UserManagement {
             }
 
             $stmt->close();
-
-            // Liberar resultados adicionales del stored procedure
-            while ($this->db->more_results()) {
-                $this->db->next_result();
-                if ($res = $this->db->store_result()) {
-                    $res->free();
-                }
-            }
 
             return $users;
 

@@ -114,7 +114,7 @@
             <div class="login-card">
                 <div class="login-header">
                     <i class="fas fa-hospital fa-3x mb-3"></i>
-                    <h2>Hospital Management System</h2>
+                    <h2>Clínica Dental Muelitas</h2>
                     <p>Ingrese sus credenciales para continuar</p>
                 </div>
                 <div class="login-body">

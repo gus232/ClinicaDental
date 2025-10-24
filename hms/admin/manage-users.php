@@ -42,11 +42,23 @@ if (isset($_POST['action']) && $_POST['action'] == 'create' && hasPermission('cr
     } else {
         $result = $userManager->createUser($data, 'Usuario creado desde panel de administración');
         if ($result['success']) {
-            // Asignar roles si se seleccionaron
+            // Asignar roles si se seleccionaron (usando RBAC que funciona correctamente)
             if (!empty($_POST['roles'])) {
-                $userManager->assignRoles($result['user_id'], $_POST['roles']);
+                $roles_assigned = 0;
+                foreach ($_POST['roles'] as $role_id) {
+                    $role_result = $rbac->assignRoleToUser($result['user_id'], intval($role_id), $_SESSION['id']);
+                    if ($role_result['success']) {
+                        $roles_assigned++;
+                    }
+                }
+                if ($roles_assigned > 0) {
+                    $success_msg = $result['message'] . " y se asignaron $roles_assigned rol(es)";
+                } else {
+                    $success_msg = $result['message'] . ' (sin roles asignados)';
+                }
+            } else {
+                $success_msg = $result['message'];
             }
-            $success_msg = $result['message'];
         } else {
             $error_msg = $result['message'];
         }
@@ -82,25 +94,66 @@ if (isset($_POST['action']) && $_POST['action'] == 'update' && hasPermission('ed
         }
     }
 
-    // Actualizar roles si se enviaron
+    // Actualizar roles si se enviaron (usando RBAC que funciona correctamente)
     $roles_updated = false;
     if (isset($_POST['roles'])) {
         $new_role_ids = !empty($_POST['roles']) ? array_map('intval', $_POST['roles']) : [];
         $current_roles = $userManager->getUserRoles($user_id);
         $current_role_ids = !empty($current_roles) ? array_map('intval', array_column($current_roles, 'id')) : [];
 
-        // Calcular diferencias
-        $roles_to_add = array_diff($new_role_ids, $current_role_ids);
-        $roles_to_remove = array_diff($current_role_ids, $new_role_ids);
+        // ✅ PROTECCIÓN AUTO-MODIFICACIÓN: Un admin no puede quitarse su propio rol de admin
+        if ($user_id == $_SESSION['id']) {
+            // Verificar si se está intentando quitar el rol de administrador
+            $admin_role_query = "SELECT id FROM roles WHERE role_name IN ('admin', 'super_admin') AND status = 'active'";
+            $admin_role_result = mysqli_query($con, $admin_role_query);
+            $admin_role_ids = [];
+            while ($row = mysqli_fetch_assoc($admin_role_result)) {
+                $admin_role_ids[] = intval($row['id']);
+            }
+            
+            // Verificar si el usuario actual tiene rol de admin
+            $user_has_admin = !empty(array_intersect($current_role_ids, $admin_role_ids));
+            $new_has_admin = !empty(array_intersect($new_role_ids, $admin_role_ids));
+            
+            if ($user_has_admin && !$new_has_admin) {
+                $error_msg = 'No puedes quitar tu propio rol de administrador. Contacta a otro administrador.';
+            } else {
+                // Proceder normalmente si no se está quitando el rol de admin
+                $roles_to_add = array_diff($new_role_ids, $current_role_ids);
+                $roles_to_remove = array_diff($current_role_ids, $new_role_ids);
 
-        // Aplicar cambios de roles
-        if (!empty($roles_to_remove)) {
-            $userManager->revokeRoles($user_id, array_values($roles_to_remove), 'Roles actualizados desde panel');
-            $roles_updated = true;
-        }
-        if (!empty($roles_to_add)) {
-            $userManager->assignRoles($user_id, array_values($roles_to_add), 'Roles actualizados desde panel');
-            $roles_updated = true;
+                // Aplicar cambios de roles
+                if (!empty($roles_to_remove)) {
+                    foreach ($roles_to_remove as $role_id) {
+                        $rbac->revokeRoleFromUser($user_id, $role_id, $_SESSION['id']);
+                    }
+                    $roles_updated = true;
+                }
+                if (!empty($roles_to_add)) {
+                    foreach ($roles_to_add as $role_id) {
+                        $rbac->assignRoleToUser($user_id, $role_id, $_SESSION['id']);
+                    }
+                    $roles_updated = true;
+                }
+            }
+        } else {
+            // Para otros usuarios, proceder normalmente
+            $roles_to_add = array_diff($new_role_ids, $current_role_ids);
+            $roles_to_remove = array_diff($current_role_ids, $new_role_ids);
+
+            // Aplicar cambios de roles
+            if (!empty($roles_to_remove)) {
+                foreach ($roles_to_remove as $role_id) {
+                    $rbac->revokeRoleFromUser($user_id, $role_id, $_SESSION['id']);
+                }
+                $roles_updated = true;
+            }
+            if (!empty($roles_to_add)) {
+                foreach ($roles_to_add as $role_id) {
+                    $rbac->assignRoleToUser($user_id, $role_id, $_SESSION['id']);
+                }
+                $roles_updated = true;
+            }
         }
     }
 
@@ -119,11 +172,35 @@ if (isset($_POST['action']) && $_POST['action'] == 'update' && hasPermission('ed
 // ELIMINAR USUARIO (SOFT DELETE)
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && hasPermission('delete_user')) {
     $user_id = $_GET['id'];
-    $result = $userManager->deleteUser($user_id, 'Usuario eliminado desde panel de administración');
-    if ($result['success']) {
-        $success_msg = $result['message'];
+    
+    // ✅ PROTECCIÓN AUTO-ELIMINACIÓN: Un admin no puede eliminarse a sí mismo
+    if ($user_id == $_SESSION['id']) {
+        $error_msg = 'No puedes eliminar tu propia cuenta. Contacta a otro administrador.';
     } else {
-        $error_msg = $result['message'];
+        $result = $userManager->deleteUser($user_id, 'Usuario eliminado desde panel de administración');
+        if ($result['success']) {
+            $success_msg = $result['message'];
+            
+            // ✅ CERRAR SESIÓN DEL USUARIO ELIMINADO (si está activo)
+            $session_file = session_save_path() . '/sess_' . session_id();
+            if (file_exists($session_file)) {
+                // Buscar y eliminar sesiones del usuario eliminado
+                $sessions_dir = session_save_path();
+                if ($handle = opendir($sessions_dir)) {
+                    while (false !== ($file = readdir($handle))) {
+                        if (strpos($file, 'sess_') === 0) {
+                            $session_data = @file_get_contents($sessions_dir . '/' . $file);
+                            if ($session_data && strpos($session_data, 'id|i:' . $user_id . ';') !== false) {
+                                @unlink($sessions_dir . '/' . $file);
+                            }
+                        }
+                    }
+                    closedir($handle);
+                }
+            }
+        } else {
+            $error_msg = $result['message'];
+        }
     }
 }
 
@@ -136,10 +213,23 @@ $search = $_GET['search'] ?? '';
 $filter_status = $_GET['status'] ?? '';
 $filter_type = $_GET['type'] ?? '';
 
+// Parámetros de ordenamiento
+$sort_by = $_GET['sort_by'] ?? 'full_name';
+$sort_order = $_GET['sort_order'] ?? 'ASC';
+
+// Validar columnas permitidas para ordenar
+$allowed_sort_columns = ['full_name', 'email', 'user_type', 'status', 'last_login'];
+if (!in_array($sort_by, $allowed_sort_columns)) {
+    $sort_by = 'full_name';
+}
+
+// Validar dirección de ordenamiento
+$sort_order = strtoupper($sort_order) === 'DESC' ? 'DESC' : 'ASC';
+
 // Obtener usuarios con filtros
 if (!empty($search) || !empty($filter_status) || !empty($filter_type)) {
     // Construir filtros solo con valores no vacíos
-    $filters = ['limit' => 100];
+    $filters = ['limit' => 100, 'sort_by' => $sort_by, 'sort_order' => $sort_order];
     if (!empty($filter_status)) {
         $filters['status'] = $filter_status;
     }
@@ -149,7 +239,7 @@ if (!empty($search) || !empty($filter_status) || !empty($filter_type)) {
     $users = $userManager->searchUsers($search, $filters);
 } else {
     // Si no hay filtros, obtener todos los usuarios
-    $users = $userManager->getAllUsers(100);
+    $users = $userManager->getAllUsers(100, $sort_by, $sort_order);
 }
 
 // Obtener estadísticas
@@ -208,29 +298,59 @@ $all_roles = $rbac->getAllRoles();
             text-transform: uppercase;
         }
         .badge-status {
-            padding: 5px 10px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 15px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
         .badge-active {
-            background: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
         }
         .badge-inactive {
-            background: #9E9E9E;
+            background: linear-gradient(135deg, #9E9E9E, #757575);
             color: white;
+            box-shadow: 0 2px 4px rgba(158, 158, 158, 0.3);
+            opacity: 0.8;
         }
         .badge-blocked {
-            background: #F44336;
+            background: linear-gradient(135deg, #F44336, #d32f2f);
             color: white;
+            box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
         }
-        .search-box {
-            margin-bottom: 20px;
+        
+        /* ✅ Efectos visuales para usuarios inactivos */
+        .user-row-inactive {
+            opacity: 0.6;
+            background-color: #f9f9f9 !important;
         }
-        .modal-header {
-            background: #00a8b3;
-            color: white;
+        .user-row-inactive td {
+            color: #666 !important;
+        }
+        .user-row-inactive .user-name {
+            text-decoration: line-through;
+            color: #999 !important;
+        }
+        
+        /* Iconos en badges */
+        .badge-status::before {
+            font-family: 'FontAwesome';
+            margin-right: 3px;
+        }
+        .badge-active::before {
+            content: '\f00c'; /* check */
+        }
+        .badge-inactive::before {
+            content: '\f00d'; /* times */
+        }
+        .badge-blocked::before {
+            content: '\f023'; /* lock */
         }
         .modal-header .close {
             color: white;
@@ -239,6 +359,27 @@ $all_roles = $rbac->getAllRoles();
         .required::after {
             content: " *";
             color: red;
+        }
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 20px;
+        }
+        .sortable-header:hover {
+            background-color: #f0f0f0;
+        }
+        .sort-icon {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.3;
+            font-size: 12px;
+        }
+        .sortable-header.active .sort-icon {
+            opacity: 1;
+            color: #00a8b3;
         }
     </style>
 </head>
@@ -312,7 +453,7 @@ $all_roles = $rbac->getAllRoles();
                         <div class="col-md-3 col-sm-6">
                             <div class="stats-card text-center" style="border-left: 4px solid #9E9E9E;">
                                 <div class="stat-icon" style="color: #9E9E9E;">
-                                    <i class="fa fa-pause-circle"></i>
+                                    <i class="fa fa-user-times"></i>
                                 </div>
                                 <div class="stat-value" style="color: #9E9E9E;">
                                     <?php echo $stats['inactive_users'] ?? 0; ?>
@@ -388,21 +529,36 @@ $all_roles = $rbac->getAllRoles();
                                         <thead>
                                             <tr>
                                                 <th width="5%">#</th>
-                                                <th width="20%">Nombre Completo</th>
-                                                <th width="20%">Email</th>
-                                                <th width="10%">Tipo</th>
+                                                <th width="20%" class="sortable-header <?php echo ($sort_by === 'full_name') ? 'active' : ''; ?>" onclick="sortTable('full_name')">
+                                                    Nombre Completo
+                                                    <i class="fa <?php echo ($sort_by === 'full_name' && $sort_order === 'ASC') ? 'fa-sort-asc' : 'fa-sort-desc'; ?> sort-icon"></i>
+                                                </th>
+                                                <th width="20%" class="sortable-header <?php echo ($sort_by === 'email') ? 'active' : ''; ?>" onclick="sortTable('email')">
+                                                    Email
+                                                    <i class="fa <?php echo ($sort_by === 'email' && $sort_order === 'ASC') ? 'fa-sort-asc' : 'fa-sort-desc'; ?> sort-icon"></i>
+                                                </th>
+                                                <th width="10%" class="sortable-header <?php echo ($sort_by === 'user_type') ? 'active' : ''; ?>" onclick="sortTable('user_type')">
+                                                    Tipo
+                                                    <i class="fa <?php echo ($sort_by === 'user_type' && $sort_order === 'ASC') ? 'fa-sort-asc' : 'fa-sort-desc'; ?> sort-icon"></i>
+                                                </th>
                                                 <th width="15%">Roles</th>
-                                                <th width="10%">Estado</th>
-                                                <th width="10%">Último Login</th>
+                                                <th width="10%" class="sortable-header <?php echo ($sort_by === 'status') ? 'active' : ''; ?>" onclick="sortTable('status')">
+                                                    Estado
+                                                    <i class="fa <?php echo ($sort_by === 'status' && $sort_order === 'ASC') ? 'fa-sort-asc' : 'fa-sort-desc'; ?> sort-icon"></i>
+                                                </th>
+                                                <th width="10%" class="sortable-header <?php echo ($sort_by === 'last_login') ? 'active' : ''; ?>" onclick="sortTable('last_login')">
+                                                    Último Login
+                                                    <i class="fa <?php echo ($sort_by === 'last_login' && $sort_order === 'ASC') ? 'fa-sort-asc' : 'fa-sort-desc'; ?> sort-icon"></i>
+                                                </th>
                                                 <th width="10%">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php if (!empty($users)): ?>
                                                 <?php $cnt = 1; foreach ($users as $user): ?>
-                                                <tr>
+                                                <tr class="<?php echo ($user['status'] === 'inactive') ? 'user-row-inactive' : ''; ?>">
                                                     <td><?php echo $cnt++; ?></td>
-                                                    <td><strong><?php echo htmlspecialchars($user['full_name']); ?></strong></td>
+                                                    <td><strong class="user-name"><?php echo htmlspecialchars($user['full_name']); ?></strong></td>
                                                     <td><?php echo htmlspecialchars($user['email']); ?></td>
                                                     <td>
                                                         <?php
@@ -752,6 +908,28 @@ $all_roles = $rbac->getAllRoles();
                 url += '?' + params.join('&');
             }
             window.location.href = url;
+        }
+
+        // Función para ordenar tabla
+        function sortTable(column) {
+            // Obtener parámetros actuales de la URL
+            var urlParams = new URLSearchParams(window.location.search);
+            
+            var currentSortBy = urlParams.get('sort_by') || 'full_name';
+            var currentSortOrder = urlParams.get('sort_order') || 'ASC';
+            
+            // Si se hace clic en la misma columna, invertir el orden
+            var newSortOrder = 'ASC';
+            if (column === currentSortBy) {
+                newSortOrder = currentSortOrder === 'ASC' ? 'DESC' : 'ASC';
+            }
+            
+            // Establecer nuevos parámetros
+            urlParams.set('sort_by', column);
+            urlParams.set('sort_order', newSortOrder);
+            
+            // Redirigir con nuevos parámetros
+            window.location.href = 'manage-users.php?' + urlParams.toString();
         }
 
         // Función para editar usuario

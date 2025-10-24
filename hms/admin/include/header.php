@@ -1,4 +1,22 @@
 <?php error_reporting(0);?>
+<style>
+.current-user .username {
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+    padding: 5px 10px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e3e7ed 100%);
+    border-radius: 8px;
+    display: inline-block;
+    margin-left: 8px;
+}
+.current-user img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border: 2px solid #00a8b3;
+}
+</style>
 <header class="navbar navbar-default navbar-static-top">
 					<!-- start: NAVBAR HEADER -->
 					<div class="navbar-header">
@@ -29,10 +47,14 @@
 							<li class="dropdown current-user">
 								<a href class="dropdown-toggle" data-toggle="dropdown">
 									<img src="assets/images/images.jpg" > <span class="username">
-
-
-
-			Admin
+									<?php 
+									$query = mysqli_query($con, "SELECT full_name FROM users WHERE id='".$_SESSION['id']."'");
+									if($row = mysqli_fetch_array($query)) {
+										echo htmlspecialchars($row['full_name']);
+									} else {
+										echo "Admin";
+									}
+									?>
 									<i class="ti-angle-down"></i></i></span>
 								</a>
 								<ul class="dropdown-menu dropdown-dark">
