@@ -702,9 +702,24 @@ $audit_records = mysqli_query($con, $audit_sql);
             max-width: 180px;
         }
 
-        .detailed-matrix thead tr.category-row th:first-child i {
+        /* Celda ROL en fila de categorías */
+        .detailed-matrix thead tr.category-row th.rol-cell i {
             font-size: 32px;
             margin-bottom: 10px;
+        }
+
+        /* Spacer invisible en fila de permisos (alinea con ROL) */
+        .detailed-matrix thead tr.permission-row th.rol-spacer {
+            background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
+            height: 250px;
+            width: 180px;
+            max-width: 180px;
+            min-width: 180px;
+            padding: 0;
+            border-right: 3px solid #667eea;
+            border-bottom: 2px solid #667eea;
+            font-size: 0; /* Hacer invisible el texto */
+            color: transparent; /* Asegurar que el texto sea invisible */
         }
 
         .detailed-matrix thead tr.category-row th i {
@@ -1262,7 +1277,7 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                 <thead>
                                                     <!-- Fila 1: Headers de categorías -->
                                                     <tr class="category-row">
-                                                        <th rowspan="2">
+                                                        <th class="rol-cell">
                                                             <i class="fa fa-shield"></i><br>
                                                             ROL
                                                         </th>
@@ -1280,6 +1295,8 @@ $audit_records = mysqli_query($con, $audit_sql);
 
                                                     <!-- Fila 2: Headers de permisos individuales (rotados) -->
                                                     <tr class="permission-row">
+                                                        <!-- Spacer invisible para alinear con ROL -->
+                                                        <th class="rol-spacer" style="visibility: hidden;">ROL</th>
                                                         <?php
                                                         $col_index = 0;
                                                         foreach ($permission_categories as $cat_index => $cat):
