@@ -389,6 +389,7 @@ class RBAC {
         $query = "SELECT p.*, pc.display_name as category_display_name
                   FROM permissions p
                   LEFT JOIN permission_categories pc ON p.category_id = pc.id
+                  WHERE p.is_active = 1 AND (pc.is_active = 1 OR pc.is_active IS NULL)
                   ORDER BY pc.sort_order, p.module, p.permission_name";
 
         $result = mysqli_query($this->con, $query);
@@ -415,7 +416,7 @@ class RBAC {
         $query = "SELECT p.*
                   FROM permissions p
                   INNER JOIN role_permissions rp ON p.id = rp.permission_id
-                  WHERE rp.role_id = ?
+                  WHERE rp.role_id = ? AND p.is_active = 1
                   ORDER BY p.module, p.permission_name";
 
         $stmt = mysqli_prepare($this->con, $query);

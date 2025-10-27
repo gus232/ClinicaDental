@@ -23,10 +23,19 @@ if (isset($_POST['create_users'])) {
             'gender' => 'Male'
         ],
         [
-            'email' => 'admin@hospital.com',
+            'email' => 'willy.z@clinica.muelitas.com',
             'password' => 'Admin123@!',
             'user_type' => 'admin',
-            'full_name' => 'Administrador Sistema',
+            'full_name' => 'Administrador Tecnico',
+            'address' => 'Oficina Central',
+            'city' => 'La Paz',
+            'gender' => 'Male'
+        ],
+        [
+            'email' => 'fredy.y@clinica.muelitas.com',
+            'password' => 'Admin123@!',
+            'user_type' => 'admin',
+            'full_name' => 'Administrador Operativo',
             'address' => 'Oficina Central',
             'city' => 'La Paz',
             'gender' => 'Male'

@@ -194,6 +194,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="manage-password-policies.php">
+                                <span class="title"><i class="fa fa-key"></i> Políticas de Contraseña </span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="manage-roles.php">
                                 <span class="title"><i class="fa fa-shield"></i> Gestionar Roles y Permisos </span>
                             </a>

@@ -200,17 +200,18 @@ if (isset($_GET['action']) && $_GET['action'] == 'revoke_role' && hasPermission(
 // Obtener todos los roles
 $all_roles = $rbac->getAllRoles();
 
-// Obtener categorías de permisos de la tabla permission_categories
-$categories_sql = "SELECT * FROM permission_categories ORDER BY sort_order ASC";
+// Obtener categorías de permisos de la tabla permission_categories (solo activas)
+$categories_sql = "SELECT * FROM permission_categories WHERE is_active = 1 ORDER BY sort_order ASC";
 $categories_result = mysqli_query($con, $categories_sql);
 $permission_categories = [];
 while ($cat = mysqli_fetch_assoc($categories_result)) {
     $permission_categories[] = $cat;
 }
 
-// Obtener todos los permisos agrupados por módulo
+// Obtener todos los permisos agrupados por módulo (solo activos)
 $sql = "SELECT p.*
         FROM permissions p
+        WHERE p.is_active = 1
         ORDER BY p.module ASC, p.permission_name ASC";
 $all_permissions_result = mysqli_query($con, $sql);
 
@@ -230,12 +231,12 @@ foreach ($all_roles as $role) {
         $role_category_matrix[$role['id']][$cat['category_name']] = 0;
     }
 
-    // Obtener permisos asignados a este rol desde la base de datos
+    // Obtener permisos asignados a este rol desde la base de datos (solo activos)
     $role_id = $role['id'];
     $perms_sql = "SELECT p.id, p.permission_name, p.module
                   FROM role_permissions rp
                   INNER JOIN permissions p ON rp.permission_id = p.id
-                  WHERE rp.role_id = $role_id";
+                  WHERE rp.role_id = $role_id AND p.is_active = 1";
     $perms_result = mysqli_query($con, $perms_sql);
     
     // Contar permisos por categoría
@@ -700,6 +701,7 @@ $audit_records = mysqli_query($con, $audit_sql);
             width: 180px;
             min-width: 180px;
             max-width: 180px;
+            height: 100px;
         }
 
         /* Celda ROL en fila de categorías */
@@ -710,17 +712,19 @@ $audit_records = mysqli_query($con, $audit_sql);
 
         /* Spacer invisible en fila de permisos (alinea con ROL) */
         .detailed-matrix thead tr.permission-row th.rol-spacer {
-            background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
-            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 200px;
             width: 180px;
             max-width: 180px;
             min-width: 180px;
             padding: 0;
-            border-right: 3px solid #667eea;
-            border-bottom: 2px solid #667eea;
+            border-right: 3px solid white;
+            border-bottom: none;
             font-size: 0; /* Hacer invisible el texto */
             color: transparent; /* Asegurar que el texto sea invisible */
         }
+        
+
 
         .detailed-matrix thead tr.category-row th i {
             display: block;
@@ -731,7 +735,7 @@ $audit_records = mysqli_query($con, $audit_sql);
         /* Headers de permisos individuales (rotados -90°) */
         .detailed-matrix thead tr.permission-row th {
             background: #f8f9fc;
-            height: 250px;
+            height: 200px;
             width: 100px;
             max-width: 100px;
             min-width: 70px;
@@ -748,13 +752,13 @@ $audit_records = mysqli_query($con, $audit_sql);
             white-space: nowrap;
             position: absolute;
             bottom: 15px;
-            left: 50%;
+            left: 80%;
             font-size: 15px;
             font-weight: 700;
             color: #333;
-            width: 240px;
+            width: 200px;
             text-align: left;
-            margin-left: -120px;
+            margin-left: -10px;
         }
 
         /* Filas de roles */
@@ -1127,7 +1131,7 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                                 $count = $role_category_matrix[$role['id']][$cat['category_name']] ?? 0;
                                                                 $total_perms += $count;
                                                             ?>
-                                                            <td>
+                                                            <td style="text-align: center;">
                                                                 <?php if ($count > 0): ?>
                                                                     <span class="perm-badge has-perms">
                                                                         <?php echo $count; ?>
@@ -1137,7 +1141,7 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                                 <?php endif; ?>
                                                             </td>
                                                             <?php endforeach; ?>
-                                                            <td style="background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);">
+                                                            <td style="text-align: center; background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);">
                                                                 <span class="perm-badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 16px; padding: 10px 18px;">
                                                                     <?php echo $total_perms; ?>
                                                                 </span>
@@ -1157,11 +1161,11 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                                 $cat_total = count($permissions_by_category[$cat['category_name']] ?? []);
                                                                 $grand_total += $cat_total;
                                                             ?>
-                                                            <td>
+                                                            <td style="text-align: center;">
                                                                 <strong style="font-size: 15px; color: #667eea;"><?php echo $cat_total; ?></strong>
                                                             </td>
                                                             <?php endforeach; ?>
-                                                            <td>
+                                                            <td style="text-align: center;">
                                                                 <strong style="font-size: 17px; color: #667eea;">
                                                                     <i class="fa fa-star"></i> <?php echo $grand_total; ?>
                                                                 </strong>
@@ -1296,7 +1300,7 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                     <!-- Fila 2: Headers de permisos individuales (rotados) -->
                                                     <tr class="permission-row">
                                                         <!-- Spacer invisible para alinear con ROL -->
-                                                        <th class="rol-spacer" style="visibility: hidden;">ROL</th>
+                                                        <th class="rol-spacer"></th>
                                                         <?php
                                                         $col_index = 0;
                                                         foreach ($permission_categories as $cat_index => $cat):
