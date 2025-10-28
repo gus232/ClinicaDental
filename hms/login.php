@@ -341,16 +341,14 @@
                             <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                         </button>
                     </form>
-
+                      <div class="form-group text-center">
+                        <div class="g-recaptcha" data-sitekey="6LenBvQrAAAAADkcAU7nHWH-gw-K9bVtOAHAiNO_"></div>
+                    </div>
                     <div class="login-footer">
                         <p class="text-muted mb-2">
                             <small>El sistema detectá automáticamente su tipo de usuario</small>
                         </p>
-                        <div>
-                            <span class="user-type-badge badge-patient"><i class="fas fa-user"></i> Paciente</span>
-                            <span class="user-type-badge badge-doctor"><i class="fas fa-user-md"></i> Doctor</span>
-                            <span class="user-type-badge badge-admin"><i class="fas fa-user-shield"></i> Admin</span>
-                        </div>
+                        
                         <p class="mt-3">
                             <a href="forgot-password.php"><i class="fas fa-question-circle"></i> ¿Olvidó su contraseña?</a>
                         </p>
@@ -363,7 +361,7 @@
             </div>
         </div>
     </div>
-
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
