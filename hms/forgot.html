@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Recuperación de Contraseña</title>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<style>
+  body {
+    background: #f3f6fa;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  h4 {
+    font-weight: 600;
+  }
+  #mensaje {
+    min-height: 40px;
+  }
+</style>
+
+<script>
+  // Inicializar EmailJS
+  emailjs.init("VN2KbOSrSaGJIdcDh"); // tu Public Key
+
+  // Generar OTP de 6 dígitos
+  function generarOTP() {
+    return Math.floor(100000 + Math.random() * 900000);
+  }
+
+  async function enviarOTP(event) {
+    event.preventDefault(); // evitar recargar la página
+
+    const correo = document.getElementById("to_email").value.trim();
+    const mensajeDiv = document.getElementById("mensaje");
+    mensajeDiv.innerHTML = '';
+
+    if (!correo) {
+      mensajeDiv.innerHTML = `<div class="alert alert-warning">⚠️ Ingresa un correo electrónico.</div>`;
+      return;
+    }
+
+    const otp = generarOTP();
+
+    // ✅ Enviar OTP por EmailJS
+    const params = { email: correo, passcode: otp, company: "Mi Empresa" };
+    try {
+      await emailjs.send("service_lkntd7r", "template_lrbfs5s", params);
+      console.log("✅ OTP enviado vía EmailJS");
+    } catch (err) {
+      console.error("Error EmailJS:", err);
+      mensajeDiv.innerHTML = `<div class="alert alert-danger">❌ Error al enviar el correo.</div>`;
+      return; // detener ejecución si falla
+    }
+
+    // ✅ Guardar OTP en la base de datos
+    try {
+      const res = await fetch("guardar_otp.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo, passcode: otp })
+      });
+
+      const data = await res.json();
+
+       
+      if (data.status === "success") {
+        mensajeDiv.innerHTML = `<div class="alert alert-success text-center">✅ OTP enviado y guardado correctamente.</div>`;
+        
+        setTimeout(() => {
+        window.location.href = "validacion.php?correo=" + encodeURIComponent(correo);
+      }, 2000);
+ 
+    } else {
+        mensajeDiv.innerHTML = `<div class="alert alert-danger text-center">❌ ${data.message}</div>`;
+      }
+
+    } catch (err) {
+      console.error("Error al guardar OTP:", err);
+      mensajeDiv.innerHTML = `<div class="alert alert-danger">❌ Error al guardar OTP en la base de datos.</div>`;
+    }
+  }
+</script>
+</head>
+<body>
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card p-4" style="width: 400px;">
+    <h4 class="text-primary text-center mb-3">Recuperación de Contraseña</h4>
+    <p class="text-muted text-center mb-4">
+      Ingresa tu correo electrónico para recibir tu código de verificación.
+    </p>
+
+    <form id="formRecuperar">
+      <div class="mb-3">
+        <label class="form-label">Correo Electrónico</label>
+        <input type="email" id="to_email" class="form-control" placeholder="correo@ejemplo.com" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Enviar OTP</button>
+    </form>
+
+    <div id="mensaje" class="mt-3"></div>
+  </div>
+</div>
+
+<script>
+  // Asociar función al submit del formulario
+  document.getElementById("formRecuperar").addEventListener("submit", enviarOTP);
+</script>
+</body>
+</html>
