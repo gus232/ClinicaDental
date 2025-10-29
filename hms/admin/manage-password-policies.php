@@ -68,7 +68,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'update_policies') {
         'max_failed_attempts' => $_POST['max_failed_attempts'] ?? 3,
         'lockout_duration_minutes' => $_POST['lockout_duration_minutes'] ?? 30,
         'reset_token_expiry_minutes' => $_POST['reset_token_expiry_minutes'] ?? 30,
-        'min_password_age_hours' => $_POST['min_password_age_hours'] ?? 1
+        'min_password_age_hours' => $_POST['min_password_age_hours'] ?? 1,
+        // Bloqueo progresivo
+        'progressive_lockout_enabled' => isset($_POST['progressive_lockout_enabled']) ? 1 : 0,
+        'lockout_1st_minutes' => $_POST['lockout_1st_minutes'] ?? 30,
+        'lockout_2nd_minutes' => $_POST['lockout_2nd_minutes'] ?? 120,
+        'lockout_3rd_minutes' => $_POST['lockout_3rd_minutes'] ?? 1440,
+        'lockout_permanent_after' => $_POST['lockout_permanent_after'] ?? 4,
+        'lockout_reset_days' => $_POST['lockout_reset_days'] ?? 30
     ];
 
     // Validaciones
@@ -92,6 +99,27 @@ if (isset($_POST['action']) && $_POST['action'] == 'update_policies') {
 
     if ($settings_to_update['lockout_duration_minutes'] < 5 || $settings_to_update['lockout_duration_minutes'] > 120) {
         $errors[] = "Duración de bloqueo debe estar entre 5 y 120 minutos";
+    }
+
+    // Validaciones para bloqueo progresivo
+    if ($settings_to_update['lockout_1st_minutes'] < 5 || $settings_to_update['lockout_1st_minutes'] > 1440) {
+        $errors[] = "Primer bloqueo debe estar entre 5 y 1440 minutos (24 horas)";
+    }
+
+    if ($settings_to_update['lockout_2nd_minutes'] < 5 || $settings_to_update['lockout_2nd_minutes'] > 2880) {
+        $errors[] = "Segundo bloqueo debe estar entre 5 y 2880 minutos (48 horas)";
+    }
+
+    if ($settings_to_update['lockout_3rd_minutes'] < 5 || $settings_to_update['lockout_3rd_minutes'] > 10080) {
+        $errors[] = "Tercer bloqueo debe estar entre 5 y 10080 minutos (7 días)";
+    }
+
+    if ($settings_to_update['lockout_permanent_after'] < 2 || $settings_to_update['lockout_permanent_after'] > 10) {
+        $errors[] = "Bloqueo permanente debe ser después de 2 a 10 bloqueos";
+    }
+
+    if ($settings_to_update['lockout_reset_days'] < 0 || $settings_to_update['lockout_reset_days'] > 365) {
+        $errors[] = "Días de reseteo deben estar entre 0 y 365";
     }
 
     if (empty($errors)) {
@@ -157,7 +185,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'restore_defaults') {
         'max_failed_attempts' => 3,
         'lockout_duration_minutes' => 30,
         'reset_token_expiry_minutes' => 30,
-        'min_password_age_hours' => 1
+        'min_password_age_hours' => 1,
+        // Bloqueo progresivo
+        'progressive_lockout_enabled' => 1,
+        'lockout_1st_minutes' => 30,
+        'lockout_2nd_minutes' => 120,
+        'lockout_3rd_minutes' => 1440,
+        'lockout_permanent_after' => 4,
+        'lockout_reset_days' => 30
     ];
 
     $updated_count = 0;
@@ -682,7 +717,104 @@ $expiring_users = mysqli_query($con, $expiring_users_query);
                                                 </div>
                                             </div>
 
-                                            <!-- SECCIÓN 5: TOKENS DE RECUPERACIÓN -->
+                                            <!-- SECCIÓN 5: BLOQUEO PROGRESIVO -->
+                                            <div class="policy-card">
+                                                <div class="policy-section">
+                                                    <h3 class="policy-section-title">
+                                                        <i class="fa fa-shield"></i> Bloqueo Progresivo de Cuenta
+                                                    </h3>
+
+                                                    <div class="alert alert-info">
+                                                        <i class="fa fa-info-circle"></i> El sistema de bloqueo progresivo aumenta automáticamente el tiempo de bloqueo con cada reincidencia. Al alcanzar el límite configurado, la cuenta se bloqueará permanentemente y requerirá intervención del administrador.
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="checkbox">
+                                                                <label>
+                                                                    <input type="checkbox" name="progressive_lockout_enabled" value="1"
+                                                                           <?php echo (isset($current_config['progressive_lockout_enabled']) && $current_config['progressive_lockout_enabled'] == 1) ? 'checked' : ''; ?>>
+                                                                    <strong>Habilitar Bloqueo Progresivo</strong> (Si se desactiva, se usará duración fija de bloqueo)
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row" style="margin-top: 15px;">
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="lockout_1st_minutes">
+                                                                    <i class="fa fa-clock-o"></i> Primer Bloqueo (minutos)
+                                                                </label>
+                                                                <input type="number" class="form-control" id="lockout_1st_minutes" name="lockout_1st_minutes"
+                                                                       value="<?php echo isset($current_config['lockout_1st_minutes']) ? $current_config['lockout_1st_minutes'] : 30; ?>"
+                                                                       min="5" max="1440" required>
+                                                                <small class="text-muted">Entre 5 y 1440 min (24h)</small>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="lockout_2nd_minutes">
+                                                                    <i class="fa fa-clock-o"></i> Segundo Bloqueo (minutos)
+                                                                </label>
+                                                                <input type="number" class="form-control" id="lockout_2nd_minutes" name="lockout_2nd_minutes"
+                                                                       value="<?php echo isset($current_config['lockout_2nd_minutes']) ? $current_config['lockout_2nd_minutes'] : 120; ?>"
+                                                                       min="5" max="2880" required>
+                                                                <small class="text-muted">Entre 5 y 2880 min (48h)</small>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="lockout_3rd_minutes">
+                                                                    <i class="fa fa-clock-o"></i> Tercer Bloqueo (minutos)
+                                                                </label>
+                                                                <input type="number" class="form-control" id="lockout_3rd_minutes" name="lockout_3rd_minutes"
+                                                                       value="<?php echo isset($current_config['lockout_3rd_minutes']) ? $current_config['lockout_3rd_minutes'] : 1440; ?>"
+                                                                       min="5" max="10080" required>
+                                                                <small class="text-muted">Entre 5 y 10080 min (7 días)</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label for="lockout_permanent_after">
+                                                                    <i class="fa fa-ban"></i> Bloqueo Permanente Después de
+                                                                </label>
+                                                                <input type="number" class="form-control" id="lockout_permanent_after" name="lockout_permanent_after"
+                                                                       value="<?php echo isset($current_config['lockout_permanent_after']) ? $current_config['lockout_permanent_after'] : 4; ?>"
+                                                                       min="2" max="10" required>
+                                                                <small class="text-muted">Número de bloqueos antes del bloqueo permanente (2-10)</small>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label for="lockout_reset_days">
+                                                                    <i class="fa fa-refresh"></i> Resetear Contador Después de (días)
+                                                                </label>
+                                                                <input type="number" class="form-control" id="lockout_reset_days" name="lockout_reset_days"
+                                                                       value="<?php echo isset($current_config['lockout_reset_days']) ? $current_config['lockout_reset_days'] : 30; ?>"
+                                                                       min="0" max="365" required>
+                                                                <small class="text-muted">Días sin incidentes para resetear (0 = nunca resetear automáticamente)</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="alert alert-warning">
+                                                        <strong><i class="fa fa-exclamation-triangle"></i> Ejemplo de escalamiento:</strong><br>
+                                                        1er bloqueo → <span id="display_1st">30</span> min |
+                                                        2do bloqueo → <span id="display_2nd">120</span> min |
+                                                        3er bloqueo → <span id="display_3rd">1440</span> min |
+                                                        <span id="display_permanent">4</span>to bloqueo → <strong>PERMANENTE</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- SECCIÓN 6: TOKENS DE RECUPERACIÓN -->
                                             <div class="policy-card">
                                                 <div class="policy-section">
                                                     <h3 class="policy-section-title">
@@ -1077,6 +1209,27 @@ $expiring_users = mysqli_query($con, $expiring_users_query);
                 return false;
             }
         });
+
+        // ============================================
+        // ACTUALIZAR EJEMPLO DE BLOQUEO PROGRESIVO
+        // ============================================
+        function updateLockoutExample() {
+            var first = document.getElementById('lockout_1st_minutes').value;
+            var second = document.getElementById('lockout_2nd_minutes').value;
+            var third = document.getElementById('lockout_3rd_minutes').value;
+            var permanent = document.getElementById('lockout_permanent_after').value;
+
+            document.getElementById('display_1st').textContent = first;
+            document.getElementById('display_2nd').textContent = second;
+            document.getElementById('display_3rd').textContent = third;
+            document.getElementById('display_permanent').textContent = permanent;
+        }
+
+        // Actualizar ejemplo cuando cambian los valores
+        document.getElementById('lockout_1st_minutes').addEventListener('input', updateLockoutExample);
+        document.getElementById('lockout_2nd_minutes').addEventListener('input', updateLockoutExample);
+        document.getElementById('lockout_3rd_minutes').addEventListener('input', updateLockoutExample);
+        document.getElementById('lockout_permanent_after').addEventListener('input', updateLockoutExample);
 
         // ============================================
         // SIMULADOR DE CONTRASEÑAS

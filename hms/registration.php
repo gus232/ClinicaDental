@@ -9,8 +9,13 @@ $form_error = '';
 $form_success = '';
 $field_errors = [];
 
+// Cargar políticas de contraseña
+$password_policies = getPasswordPolicies();
+
 // Preservar valores del formulario
 $form_data = [
+    'firstname' => $_POST['firstname'] ?? '',
+    'lastname' => $_POST['lastname'] ?? '',
     'full_name' => $_POST['full_name'] ?? '',
     'address' => $_POST['address'] ?? '',
     'city' => $_POST['city'] ?? '',
@@ -22,7 +27,9 @@ if (isset($_POST['submit'])) {
     if (!csrf_validate()) {
         $form_error = 'Solicitud inválida. Actualiza la página e inténtalo de nuevo.';
     } else {
-        $fname = mysqli_real_escape_string($con, trim($_POST['full_name'] ?? ''));
+        $firstname = mysqli_real_escape_string($con, trim($_POST['firstname'] ?? ''));
+        $lastname = mysqli_real_escape_string($con, trim($_POST['lastname'] ?? ''));
+        $fname = $firstname . ' ' . $lastname; // Combinar nombre y apellido
         $address = mysqli_real_escape_string($con, trim($_POST['address'] ?? ''));
         $city = mysqli_real_escape_string($con, trim($_POST['city'] ?? ''));
         $gender = mysqli_real_escape_string($con, trim($_POST['gender'] ?? ''));
@@ -30,7 +37,12 @@ if (isset($_POST['submit'])) {
         $password = $_POST['password'] ?? '';
         $password_again = $_POST['password_again'] ?? '';
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        // Validar formato de correo corporativo
+        if (!validateCorporateEmail($email)) {
+            $form_error = 'El correo electrónico no cumple con el formato corporativo requerido.';
+            $field_errors['email'] = true;
+        }
+        elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $form_error = 'El correo electrónico no es válido.';
             $field_errors['email'] = true;
         }
@@ -41,8 +53,9 @@ if (isset($_POST['submit'])) {
             $field_errors['password_again'] = true;
         }
 
+        // Validar con políticas dinámicas de contraseña
         if (!$form_error) {
-            $pwdValidation = validate_password_simple($password, $con);
+            $pwdValidation = validatePasswordAgainstPolicies($password);
             if (!$pwdValidation['valid']) {
                 $form_error = implode('<br>', $pwdValidation['errors']);
                 $field_errors['password'] = true;
@@ -114,7 +127,7 @@ if (isset($_POST['submit'])) {
                     $form_success = 'Registro exitoso. Ahora puedes iniciar sesión.';
                 }
                 // Limpiar datos del formulario solo si es exitoso
-                $form_data = ['full_name' => '', 'address' => '', 'city' => '', 'gender' => '', 'email' => ''];
+                $form_data = ['firstname' => '', 'lastname' => '', 'full_name' => '', 'address' => '', 'city' => '', 'gender' => '', 'email' => ''];
                 echo "<script>setTimeout(function(){ window.location.href='login.php'; }, 1500);</script>";
             } catch (Exception $e) {
                 mysqli_rollback($con);
@@ -312,7 +325,10 @@ return true;
                                 Ponga su información personal:
                             </p>
                             <div class="form-group">
-                                <input type="text" class="form-control <?php echo isset($field_errors['full_name']) ? 'error' : ''; ?>" name="full_name" placeholder="Nombre Completo" value="<?php echo htmlspecialchars($form_data['full_name']); ?>" required>
+                                <input type="text" class="form-control" id="firstname" name="firstname" placeholder="Nombre(s)" value="<?php echo htmlspecialchars($form_data['firstname']); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="lastname" name="lastname" placeholder="Apellido(s)" value="<?php echo htmlspecialchars($form_data['lastname']); ?>" required>
                             </div>
                             <div class="form-group">
                                 <input type="text" class="form-control <?php echo isset($field_errors['address']) ? 'error' : ''; ?>" name="address" placeholder="Dirección" value="<?php echo htmlspecialchars($form_data['address']); ?>" required>
@@ -339,10 +355,17 @@ return true;
                                 Ponga su información de cuenta:
                             </p>
                             <div class="form-group">
-                                <span class="input-icon">
-                                    <input type="email" class="form-control <?php echo isset($field_errors['email']) ? 'error' : ''; ?>" name="email" id="email" onBlur="userAvailability()" placeholder="Correo electrónico" value="<?php echo htmlspecialchars($form_data['email']); ?>" required>
-                                    <i class="fa fa-envelope"></i> </span>
-                                     <span id="user-availability-status1" style="font-size:12px;"></span>
+                                <label>Email Corporativo</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <span class="input-icon" style="flex: 1;">
+                                        <input type="email" class="form-control <?php echo isset($field_errors['email']) ? 'error' : ''; ?>" name="email" id="email" onBlur="userAvailability()" placeholder="Correo corporativo" value="<?php echo htmlspecialchars($form_data['email']); ?>" required>
+                                        <i class="fa fa-envelope"></i>
+                                    </span>
+                                    <button type="button" id="generateEmailBtn" class="btn btn-primary" style="height: 50px; padding: 0 20px;" title="Generar email automáticamente">
+                                        <i class="fa fa-magic"></i>
+                                    </button>
+                                </div>
+                                <span id="user-availability-status1" style="font-size:12px; display: block; margin-top: 5px;"></span>
                             </div>
                             <div class="form-group">
                                 <span class="input-icon">
@@ -359,11 +382,19 @@ return true;
                             </div>
                             <div class="form-group">
                                 <div class="requirements-list">
-                                    <small id="req-length" class="unmet">Mínimo 8 caracteres</small>
+                                    <small id="req-length" class="unmet">Mínimo <?php echo $password_policies['min_length']; ?> caracteres</small>
+                                    <?php if ($password_policies['require_uppercase'] == 1): ?>
                                     <small id="req-upper" class="unmet">Una letra mayúscula</small>
+                                    <?php endif; ?>
+                                    <?php if ($password_policies['require_lowercase'] == 1): ?>
                                     <small id="req-lower" class="unmet">Una letra minúscula</small>
+                                    <?php endif; ?>
+                                    <?php if ($password_policies['require_numbers'] == 1): ?>
                                     <small id="req-number" class="unmet">Un número</small>
+                                    <?php endif; ?>
+                                    <?php if ($password_policies['require_special'] == 1): ?>
                                     <small id="req-special" class="unmet">Un carácter especial</small>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -397,6 +428,9 @@ return true;
 
 			</div>
 		</div>
+		<?php echo getEmailConfigForJS(); ?>
+		<?php echo getPasswordPoliciesForJS(); ?>
+
 		<script src="vendor/jquery/jquery.min.js"></script>
 		<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
 		<script src="vendor/modernizr/modernizr.js"></script>
@@ -406,6 +440,7 @@ return true;
 		<script src="vendor/jquery-validation/jquery.validate.min.js"></script>
 		<script src="assets/js/main.js"></script>
 		<script src="assets/js/login.js"></script>
+		<script src="assets/js/email-validation.js"></script>
 		<script>
 			jQuery(document).ready(function() {
 				Main.init();
@@ -428,46 +463,123 @@ error:function (){}
 });
 }
 
-// Validación en tiempo real de contraseña
+// Validación en tiempo real de correo corporativo y auto-generación
 jQuery(document).ready(function() {
+    // Auto-generar email cuando se completen nombre y apellido
+    $('#firstname, #lastname').on('blur', function() {
+        var firstname = $('#firstname').val().trim();
+        var lastname = $('#lastname').val().trim();
+
+        if (firstname && lastname) {
+            generateEmailForRegistration(firstname, lastname);
+        }
+    });
+
+    // Botón manual para generar email
+    $('#generateEmailBtn').on('click', function() {
+        var firstname = $('#firstname').val().trim();
+        var lastname = $('#lastname').val().trim();
+
+        if (!firstname || !lastname) {
+            alert('Por favor ingrese nombre y apellido primero');
+            return;
+        }
+
+        generateEmailForRegistration(firstname, lastname);
+    });
+
+    // Función para generar email vía API pública
+    function generateEmailForRegistration(firstname, lastname) {
+        $('#user-availability-status1').html('<i class="fa fa-spinner fa-spin"></i> Generando email...');
+
+        $.ajax({
+            url: 'api/generate-email-public.php',
+            type: 'POST',
+            data: {
+                firstname: firstname,
+                lastname: lastname
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $('#email').val(response.email);
+                    $('#email').removeClass('error').addClass('success');
+                    $('#user-availability-status1').html('<span style="color:green;"><i class="fa fa-check"></i> Email generado: ' + response.email + '</span>');
+                    // Ejecutar validación de disponibilidad
+                    setTimeout(function() {
+                        userAvailability();
+                    }, 500);
+                } else {
+                    $('#user-availability-status1').html('<span style="color:red;"><i class="fa fa-times"></i> ' + response.error + '</span>');
+                }
+            },
+            error: function() {
+                $('#user-availability-status1').html('<span style="color:red;"><i class="fa fa-times"></i> Error al generar email</span>');
+            }
+        });
+    }
+
+    $('#email').on('blur change', function() {
+        var email = $(this).val().trim();
+
+        if (!email) {
+            $(this).removeClass('error success');
+            $('#user-availability-status1').html('');
+            return;
+        }
+
+        // Validar formato corporativo
+        if (!validateCorporateEmailFormat(email)) {
+            $(this).removeClass('success').addClass('error');
+            $('#user-availability-status1').html('<span style="color:red;">El email debe usar el dominio corporativo: @' + CORPORATE_EMAIL_DOMAIN + '</span>');
+        } else {
+            $(this).removeClass('error').addClass('success');
+            // La validación de disponibilidad se ejecutará con userAvailability()
+        }
+    });
+
+    // Validación en tiempo real de contraseña con políticas dinámicas
     $('#password').on('input', function() {
         var password = $(this).val();
         var strengthBar = $('#strengthBar');
         var strengthText = $('#strengthText');
-        
-        // Verificar requisitos
-        var hasLength = password.length >= 8;
-        var hasUpper = /[A-Z]/.test(password);
-        var hasLower = /[a-z]/.test(password);
-        var hasNumber = /[0-9]/.test(password);
-        var hasSpecial = /[@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password);
-        
-        // Actualizar indicadores visuales
+
+        // Validar usando la función de email-validation.js
+        var validation = validatePassword(password);
+
+        // Verificar requisitos según políticas
+        var hasLength = password.length >= PASSWORD_MIN_LENGTH;
+        var hasUpper = PASSWORD_REQUIRE_UPPERCASE ? /[A-Z]/.test(password) : true;
+        var hasLower = PASSWORD_REQUIRE_LOWERCASE ? /[a-z]/.test(password) : true;
+        var hasNumber = PASSWORD_REQUIRE_NUMBERS ? /[0-9]/.test(password) : true;
+        var hasSpecial = PASSWORD_REQUIRE_SPECIAL ? /[!@#$%^&*()_+\-=\[\]{};:'",.<>?\/\\|`~]/.test(password) : true;
+
+        // Actualizar indicadores visuales (solo si existen)
         $('#req-length').toggleClass('met', hasLength).toggleClass('unmet', !hasLength);
-        $('#req-upper').toggleClass('met', hasUpper).toggleClass('unmet', !hasUpper);
-        $('#req-lower').toggleClass('met', hasLower).toggleClass('unmet', !hasLower);
-        $('#req-number').toggleClass('met', hasNumber).toggleClass('unmet', !hasNumber);
-        $('#req-special').toggleClass('met', hasSpecial).toggleClass('unmet', !hasSpecial);
-        
-        // Calcular fortaleza
-        var strength = 0;
-        if (hasLength) strength++;
-        if (hasUpper) strength++;
-        if (hasLower) strength++;
-        if (hasNumber) strength++;
-        if (hasSpecial) strength++;
-        
+        if (PASSWORD_REQUIRE_UPPERCASE) {
+            $('#req-upper').toggleClass('met', hasUpper).toggleClass('unmet', !hasUpper);
+        }
+        if (PASSWORD_REQUIRE_LOWERCASE) {
+            $('#req-lower').toggleClass('met', hasLower).toggleClass('unmet', !hasLower);
+        }
+        if (PASSWORD_REQUIRE_NUMBERS) {
+            $('#req-number').toggleClass('met', hasNumber).toggleClass('unmet', !hasNumber);
+        }
+        if (PASSWORD_REQUIRE_SPECIAL) {
+            $('#req-special').toggleClass('met', hasSpecial).toggleClass('unmet', !hasSpecial);
+        }
+
         // Actualizar barra y texto de fortaleza
         strengthBar.removeClass('weak medium strong');
         strengthText.removeClass('weak medium strong');
-        
+
         if (password.length === 0) {
             strengthBar.removeClass('weak medium strong');
             strengthText.text('');
-        } else if (strength < 3) {
+        } else if (validation.strength < 60) {
             strengthBar.addClass('weak');
             strengthText.addClass('weak').text('Débil');
-        } else if (strength < 5) {
+        } else if (validation.strength < 100) {
             strengthBar.addClass('medium');
             strengthText.addClass('medium').text('Media');
         } else {
@@ -476,18 +588,41 @@ jQuery(document).ready(function() {
             $('#password').removeClass('error').addClass('success');
         }
     });
-    
+
     // Validar confirmación de contraseña
     $('#password_again').on('input', function() {
         var password = $('#password').val();
         var confirm = $(this).val();
-        
+
         if (confirm.length > 0) {
             if (password === confirm) {
                 $(this).removeClass('error').addClass('success');
             } else {
                 $(this).removeClass('success').addClass('error');
             }
+        }
+    });
+
+    // Validar formulario antes de enviar
+    $('#registration').on('submit', function(e) {
+        var email = $('#email').val().trim();
+        var password = $('#password').val();
+
+        // Validar formato de correo
+        if (!validateCorporateEmailFormat(email)) {
+            e.preventDefault();
+            alert('El correo electrónico no cumple con el formato corporativo requerido.');
+            $('#email').focus();
+            return false;
+        }
+
+        // Validar contraseña según políticas
+        var passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+            e.preventDefault();
+            alert('La contraseña no cumple con los requisitos: ' + passwordValidation.errors.join(', '));
+            $('#password').focus();
+            return false;
         }
     });
 });

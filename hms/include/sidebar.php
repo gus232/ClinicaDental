@@ -1,64 +1,243 @@
+<?php
+/**
+ * ============================================================================
+ * SIDEBAR DE PACIENTES - 2 SECCIONES
+ * ============================================================================
+ * Estructura simplificada para pacientes:
+ * - Tablero
+ * - Citas (Reservar + Historial)
+ * ============================================================================
+ */
+
+// Verificar permisos para cada opción del menú
+$canCreateAppointment = hasPermission('create_appointment');
+$canViewOwnAppointments = hasPermission('view_own_appointments');
+?>
+
+<style>
+/* Estilos para items bloqueados */
+.menu-item-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    position: relative;
+}
+
+.menu-item-disabled > a {
+    color: #999 !important;
+    pointer-events: none;
+    cursor: not-allowed !important;
+}
+
+.menu-item-disabled:hover::after {
+    content: "🔒 Sin permiso";
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f44336;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 1000;
+    white-space: nowrap;
+}
+
+.menu-section-title {
+    padding: 15px 20px 10px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #9e9e9e;
+    margin-top: 10px;
+}
+
+.menu-section-title:first-child {
+    margin-top: 0;
+}
+
+/* Estilos para el botón de toggle del sidebar */
+.sidebar-header {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1001;
+}
+
+/* Asegurar que el sidebar tenga z-index alto */
+.sidebar.app-aside {
+    z-index: 999 !important;
+}
+
+.sidebar-container {
+    position: relative;
+    z-index: 999;
+}
+
+.sidebar-toggle-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.sidebar-toggle-btn i {
+    font-size: 18px;
+}
+
+.sidebar-user-type {
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Ocultar el texto cuando el sidebar está cerrado */
+.app-sidebar-closed .sidebar-user-type {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.navbar-title {
+    padding-top: 60px !important;
+}
+
+/* Evitar que los items del menú se superpongan al botón */
+.main-navigation-menu {
+    margin-top: 80px !important;
+}
+
+.main-navigation-menu li .item-content {
+    position: relative;
+    z-index: 1;
+}
+
+.main-navigation-menu li .item-media {
+    position: relative;
+    z-index: 1;
+}
+
+/* Cuando el sidebar está cerrado */
+.app-sidebar-closed .sidebar .navbar-title {
+    display: none !important;
+}
+
+.app-sidebar-closed .sidebar .main-navigation-menu {
+    margin-top: 80px !important;
+    padding-top: 0 !important;
+}
+</style>
+
 <div class="sidebar app-aside" id="sidebar">
     <div class="sidebar-container perfect-scrollbar">
-
+        <!-- Header del sidebar con botón y texto -->
+        <div class="sidebar-header">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                <i class="ti-align-justify"></i>
+            </button>
+            <span class="sidebar-user-type">PACIENTE</span>
+        </div>
+        
         <nav>
-            <!-- start: MAIN NAVIGATION MENU -->
+            <!-- start: MENÚ DE NAVEGACIÓN PRINCIPAL -->
             <div class="navbar-title">
-                <span>Navegación Principal</span>
+                <span>Panel de Paciente</span>
             </div>
+
             <ul class="main-navigation-menu">
+
+                <!-- ========================================================= -->
+                <!-- SECCIÓN 1: TABLERO -->
+                <!-- ========================================================= -->
                 <li>
                     <a href="dashboard1.php">
                         <div class="item-content">
                             <div class="item-media">
-                                <i class="ti-home"></i>
+                                <i class="fa fa-dashboard"></i>
                             </div>
                             <div class="item-inner">
-                                <span class="title"> Panel de Control </span>
-                            </div>
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="book-appointment.php">
-                        <div class="item-content">
-                            <div class="item-media">
-                                <i class="ti-pencil-alt"></i>
-                            </div>
-                            <div class="item-inner">
-                                <span class="title"> Reservar Cita </span>
+                                <span class="title">Tablero</span>
                             </div>
                         </div>
                     </a>
                 </li>
 
+                <!-- ========================================================= -->
+                <!-- SECCIÓN 2: CITAS -->
+                <!-- ========================================================= -->
                 <li>
-                    <a href="appointment-history.php">
+                    <a href="javascript:void(0)">
                         <div class="item-content">
                             <div class="item-media">
-                                <i class="ti-list"></i>
+                                <i class="fa fa-calendar"></i>
                             </div>
                             <div class="item-inner">
-                                <span class="title"> Historial de Citas </span>
+                                <span class="title">Citas</span>
+                                <i class="icon-arrow"></i>
                             </div>
                         </div>
                     </a>
-                </li>
-                <li>
-                    <a href="manage-medhistory.php">
-                        <div class="item-content">
-                            <div class="item-media">
-                                <i class="ti-list"></i>
-                            </div>
-                            <div class="item-inner">
-                                <span class="title"> Historial Médico </span>
-                            </div>
-                        </div>
-                    </a>
+                    <ul class="sub-menu">
+                        <!-- Reservar Cita -->
+                        <li class="<?php echo !$canCreateAppointment ? 'menu-item-disabled' : ''; ?>">
+                            <a href="<?php echo $canCreateAppointment ? 'book-appointment.php' : 'javascript:void(0)'; ?>">
+                                <i class="fa fa-plus-circle"></i>
+                                <span class="title">
+                                    Reservar Cita
+                                    <?php if (!$canCreateAppointment): ?>
+                                    <i class="fa fa-lock" style="font-size: 10px; opacity: 0.6;"></i>
+                                    <?php endif; ?>
+                                </span>
+                            </a>
+                        </li>
+
+                        <!-- Historial de Citas -->
+                        <li class="<?php echo !$canViewOwnAppointments ? 'menu-item-disabled' : ''; ?>">
+                            <a href="<?php echo $canViewOwnAppointments ? 'appointment-history.php' : 'javascript:void(0)'; ?>">
+                                <i class="fa fa-list"></i>
+                                <span class="title">
+                                    Historial de Citas
+                                    <?php if (!$canViewOwnAppointments): ?>
+                                    <i class="fa fa-lock" style="font-size: 10px; opacity: 0.6;"></i>
+                                    <?php endif; ?>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
             </ul>
-            <!-- end: CORE FEATURES -->
+            <!-- end: MENÚ DE NAVEGACIÓN PRINCIPAL -->
         </nav>
     </div>
 </div>
+
+<script>
+// Script para el botón de toggle del sidebar
+function toggleSidebar() {
+    const app = document.getElementById('app');
+    if (app) {
+        app.classList.toggle('app-sidebar-closed');
+    }
+}
+</script>

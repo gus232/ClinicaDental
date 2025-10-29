@@ -2,6 +2,7 @@
 session_start();
 error_reporting(0);
 include('include/config.php');
+include('../include/rbac-functions.php');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,6 +23,78 @@ include('include/config.php');
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/plugins.css">
     <link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
+    <style>
+        /* Mejoras visuales para gestionar pacientes */
+        .mainTitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        #page-title {
+            margin-bottom: 30px;
+        }
+        
+        .over-title {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            color: #2c3e50;
+        }
+        
+        .table tbody td a {
+            color: #11998e;
+            font-size: 18px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody td a:hover {
+            color: #38ef7d;
+            transform: scale(1.2);
+        }
+        
+        .container-fullw {
+            padding: 30px;
+        }
+    </style>
 </head>
 <body>
     <div id="app">        

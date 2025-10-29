@@ -3,6 +3,7 @@ session_start();
 error_reporting(0);
 include('include/config.php');
 include('include/checklogin.php');
+include('include/rbac-functions.php');
 include('include/password-policy.php');
 
 check_login();

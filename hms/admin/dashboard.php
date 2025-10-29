@@ -3,6 +3,7 @@ session_start();
 error_reporting(0);
 include('include/config.php');
 include('include/checklogin.php');
+include('../include/rbac-functions.php');
 check_login();
 
 // Obtener estadísticas generales con manejo de errores
@@ -386,35 +387,35 @@ if ($result) {
                 <div class="col-md-6 col-sm-6">
                     <div class="quick-action-card">
                         <div class="quick-action-icon">
-                            <i class="fa fa-calendar-plus-o"></i>
+                            <i class="fa fa-shield"></i>
                         </div>
-                        <div class="quick-action-title">Nueva Cita</div>
-                        <a href="book-appointment.php" class="quick-action-link">
-                            Agendar Cita <i class="fa fa-arrow-right"></i>
+                        <div class="quick-action-title">Roles y Permisos</div>
+                        <a href="manage-roles.php" class="quick-action-link">
+                            Gestionar Roles <i class="fa fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-sm-6">
                     <div class="quick-action-card">
                         <div class="quick-action-icon">
-                            <i class="fa fa-stethoscope"></i>
+                            <i class="fa fa-key"></i>
                         </div>
-                        <div class="quick-action-title">Gestionar Doctores</div>
-                        <a href="manage-doctors.php" class="quick-action-link">
-                            Ver Doctores <i class="fa fa-arrow-right"></i>
+                        <div class="quick-action-title">Políticas de Contraseña</div>
+                        <a href="manage-password-policies.php" class="quick-action-link">
+                            Ver Políticas <i class="fa fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-sm-6">
                     <div class="quick-action-card">
                         <div class="quick-action-icon">
-                            <i class="fa fa-wheelchair"></i>
+                            <i class="fa fa-lock"></i>
                         </div>
-                        <div class="quick-action-title">Ver Pacientes</div>
-                        <a href="manage-patient.php" class="quick-action-link">
-                            Ver Pacientes <i class="fa fa-arrow-right"></i>
+                        <div class="quick-action-title">Seguridad</div>
+                        <a href="security-logs.php" class="quick-action-link">
+                            Ver Logs <i class="fa fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>

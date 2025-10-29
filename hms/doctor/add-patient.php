@@ -2,6 +2,7 @@
 session_start();
 error_reporting(0);
 include('include/config.php');
+include('../include/rbac-functions.php');
 
 if (isset($_POST['submit'])) {
     $docid = $_SESSION['id'];
@@ -47,6 +48,93 @@ if (isset($_POST['submit'])) {
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/plugins.css">
     <link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
+    <style>
+        /* Mejoras visuales para agregar paciente */
+        .panel-white {
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            border: none;
+            overflow: hidden;
+        }
+        
+        .panel-heading {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .panel-heading h5 {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .panel-body {
+            padding: 30px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #11998e;
+            box-shadow: 0 0 0 0.2rem rgba(17, 153, 142, 0.25);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+        }
+        
+        .mainTitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        #page-title {
+            margin-bottom: 30px;
+        }
+        
+        .clip-radio {
+            margin: 10px 0;
+        }
+        
+        .clip-radio label {
+            font-weight: 500;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+    </style>
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script>
@@ -94,7 +182,7 @@ if (isset($_POST['submit'])) {
                                     <div class="col-lg-8 col-md-12">
                                         <div class="panel panel-white">
                                             <div class="panel-heading">
-                                                <h5 class="panel-title">Añadir Paciente</h5>
+                                                <h5 class="panel-title"><i class="fa fa-user-plus"></i> Añadir Paciente</h5>
                                             </div>
                                             <div class="panel-body">
                                                 <form role="form" name="" method="post">

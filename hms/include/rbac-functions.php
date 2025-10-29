@@ -666,4 +666,423 @@ function isAdmin($user_id = null, $connection = null) {
     return hasRole('super_admin', $user_id, $connection) || hasRole('admin', $user_id, $connection);
 }
 
+/**
+ * ============================================================================
+ * FUNCIONES DE GESTIÓN DE CONFIGURACIONES DEL SISTEMA
+ * ============================================================================
+ */
+
+/**
+ * Obtener el valor de una configuración del sistema
+ *
+ * @param string $key - Clave de la configuración
+ * @param mixed $default - Valor por defecto si no existe
+ * @param object $connection - Conexión a BD (opcional)
+ * @return mixed - Valor de la configuración o valor por defecto
+ */
+function getSystemSetting($key, $default = null, $connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    $query = "SELECT setting_value FROM system_settings WHERE setting_key = ?";
+    $stmt = mysqli_prepare($db, $query);
+
+    if (!$stmt) {
+        return $default;
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $key);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    if ($row = mysqli_fetch_assoc($result)) {
+        return $row['setting_value'];
+    }
+
+    return $default;
+}
+
+/**
+ * Guardar o actualizar una configuración del sistema
+ *
+ * @param string $key - Clave de la configuración
+ * @param mixed $value - Valor a guardar
+ * @param int $user_id - ID del usuario que realiza el cambio (opcional)
+ * @param object $connection - Conexión a BD (opcional)
+ * @return bool - true si se guardó exitosamente
+ */
+function setSystemSetting($key, $value, $user_id = null, $connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    // Si no se especifica user_id, usar el de la sesión
+    if ($user_id === null) {
+        if (!isset($_SESSION)) {
+            session_start();
+        }
+        $user_id = $_SESSION['id'] ?? null;
+    }
+
+    $query = "INSERT INTO system_settings (setting_key, setting_value, updated_by)
+              VALUES (?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                  setting_value = VALUES(setting_value),
+                  updated_by = VALUES(updated_by),
+                  updated_at = CURRENT_TIMESTAMP";
+
+    $stmt = mysqli_prepare($db, $query);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "ssi", $key, $value, $user_id);
+    return mysqli_stmt_execute($stmt);
+}
+
+/**
+ * Obtener todas las configuraciones de una categoría
+ *
+ * @param string $category - Nombre de la categoría
+ * @param object $connection - Conexión a BD (opcional)
+ * @return array - Array asociativo [key => value]
+ */
+function getAllSettingsByCategory($category, $connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    $settings = [];
+
+    $query = "SELECT setting_key, setting_value
+              FROM system_settings
+              WHERE setting_category = ?
+              ORDER BY setting_key";
+
+    $stmt = mysqli_prepare($db, $query);
+
+    if (!$stmt) {
+        return $settings;
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $category);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+
+    return $settings;
+}
+
+/**
+ * ============================================================================
+ * FUNCIONES DE GESTIÓN DE CORREOS CORPORATIVOS
+ * ============================================================================
+ */
+
+/**
+ * Generar email corporativo basado en nombre y apellido
+ * Maneja nombres y apellidos compuestos con estrategia de fallback
+ *
+ * @param string $firstname - Nombre(s) del usuario (puede ser compuesto: "Juan José")
+ * @param string $lastname - Apellido(s) del usuario (puede ser compuesto: "García López")
+ * @param object $connection - Conexión a BD (opcional)
+ * @return string|false - Email generado o false si hay error
+ */
+function generateCorporateEmail($firstname, $lastname, $connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    // Obtener configuración de email
+    $domain = getSystemSetting('email_domain', 'clinica.dental.muelitas', $db);
+    $template = getSystemSetting('email_format_template', '{firstname}.{lastname_initial}@{domain}', $db);
+
+    // Limpiar y normalizar nombres
+    $firstname = strtolower(trim($firstname));
+    $lastname = strtolower(trim($lastname));
+
+    // Remover acentos y caracteres especiales
+    $firstname = removeAccents($firstname);
+    $lastname = removeAccents($lastname);
+
+    // Separar nombres y apellidos compuestos por espacios
+    $firstnames = array_filter(explode(' ', $firstname)); // array_filter elimina elementos vacíos
+    $lastnames = array_filter(explode(' ', $lastname));
+
+    // Generar todas las variantes posibles
+    $variants = generateEmailVariants($firstnames, $lastnames, $template, $domain, $db);
+
+    // Buscar la primera variante disponible
+    foreach ($variants as $email_variant) {
+        if (isEmailAvailable($email_variant, null, $db)) {
+            return $email_variant;
+        }
+    }
+
+    // Si ninguna variante está disponible, agregar número al primer email
+    $base_email = $variants[0];
+    $counter = 2;
+    $email = str_replace('@', $counter . '@', $base_email);
+
+    while (!isEmailAvailable($email, null, $db)) {
+        $counter++;
+        $email = str_replace('@', $counter . '@', $base_email);
+    }
+
+    return $email;
+}
+
+/**
+ * Generar variantes de email según nombres y apellidos compuestos
+ *
+ * Estrategia de fallback:
+ * 1. primer_nombre + inicial_primer_apellido (ej: juan.g@...)
+ * 2. primer_nombre + inicial_segundo_apellido (ej: juan.l@...)
+ * 3. segundo_nombre + inicial_primer_apellido (ej: jose.g@...)
+ * 4. segundo_nombre + inicial_segundo_apellido (ej: jose.l@...)
+ *
+ * @param array $firstnames - Array de nombres
+ * @param array $lastnames - Array de apellidos
+ * @param string $template - Plantilla de formato
+ * @param string $domain - Dominio corporativo
+ * @param object $db - Conexión BD
+ * @return array - Array de emails variantes
+ */
+function generateEmailVariants($firstnames, $lastnames, $template, $domain, $db) {
+    $variants = [];
+
+    // Asegurar que tenemos al menos un nombre y un apellido
+    if (empty($firstnames) || empty($lastnames)) {
+        return $variants;
+    }
+
+    // Generar todas las combinaciones
+    foreach ($firstnames as $fname) {
+        foreach ($lastnames as $lname) {
+            $fname_clean = trim($fname);
+            $lname_clean = trim($lname);
+
+            // Obtener iniciales
+            $fname_initial = substr($fname_clean, 0, 1);
+            $lname_initial = substr($lname_clean, 0, 1);
+
+            // Reemplazar tokens según el template
+            $email = str_replace(
+                ['{firstname}', '{lastname}', '{firstname_initial}', '{lastname_initial}', '{domain}'],
+                [$fname_clean, $lname_clean, $fname_initial, $lname_initial, $domain],
+                $template
+            );
+
+            $variants[] = $email;
+        }
+    }
+
+    return $variants;
+}
+
+/**
+ * Validar que un email cumpla con el formato corporativo
+ *
+ * @param string $email - Email a validar
+ * @param object $connection - Conexión a BD (opcional)
+ * @return bool - true si cumple el formato
+ */
+function validateCorporateEmail($email, $connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    // Obtener configuración
+    $domain = getSystemSetting('email_domain', 'clinica.dental.muelitas', $db);
+    $allow_custom = getSystemSetting('email_allow_custom', '0', $db);
+
+    // Si se permiten emails personalizados, solo validar formato básico
+    if ($allow_custom == '1') {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    // Validar que termine con el dominio corporativo
+    $email_lower = strtolower(trim($email));
+    $expected_domain = '@' . strtolower($domain);
+
+    if (!str_ends_with($email_lower, $expected_domain)) {
+        return false;
+    }
+
+    // Validar formato de email
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+/**
+ * Verificar si un email está disponible
+ *
+ * @param string $email - Email a verificar
+ * @param int $exclude_user_id - ID de usuario a excluir (para edición)
+ * @param object $connection - Conexión a BD (opcional)
+ * @return bool - true si está disponible
+ */
+function isEmailAvailable($email, $exclude_user_id = null, $connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    $query = "SELECT id FROM users WHERE email = ?";
+
+    if ($exclude_user_id !== null) {
+        $query .= " AND id != ?";
+        $stmt = mysqli_prepare($db, $query);
+        mysqli_stmt_bind_param($stmt, "si", $email, $exclude_user_id);
+    } else {
+        $stmt = mysqli_prepare($db, $query);
+        mysqli_stmt_bind_param($stmt, "s", $email);
+    }
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return mysqli_num_rows($result) == 0;
+}
+
+/**
+ * Remover acentos y caracteres especiales de texto
+ *
+ * @param string $text - Texto a limpiar
+ * @return string - Texto sin acentos
+ */
+function removeAccents($text) {
+    $unwanted_array = [
+        'á'=>'a', 'Á'=>'A', 'à'=>'a', 'À'=>'A', 'ä'=>'a', 'Ä'=>'A', 'â'=>'a', 'Â'=>'A',
+        'é'=>'e', 'É'=>'E', 'è'=>'e', 'È'=>'E', 'ë'=>'e', 'Ë'=>'E', 'ê'=>'e', 'Ê'=>'E',
+        'í'=>'i', 'Í'=>'I', 'ì'=>'i', 'Ì'=>'I', 'ï'=>'i', 'Ï'=>'I', 'î'=>'i', 'Î'=>'I',
+        'ó'=>'o', 'Ó'=>'O', 'ò'=>'o', 'Ò'=>'O', 'ö'=>'o', 'Ö'=>'O', 'ô'=>'o', 'Ô'=>'O',
+        'ú'=>'u', 'Ú'=>'U', 'ù'=>'u', 'Ù'=>'U', 'ü'=>'u', 'Ü'=>'U', 'û'=>'u', 'Û'=>'U',
+        'ñ'=>'n', 'Ñ'=>'N', 'ç'=>'c', 'Ç'=>'C'
+    ];
+
+    return strtr($text, $unwanted_array);
+}
+
+/**
+ * ============================================================================
+ * FUNCIONES DE POLÍTICAS DE CONTRASEÑA
+ * ============================================================================
+ */
+
+/**
+ * Obtener las políticas de contraseña actuales del sistema
+ *
+ * @param object $connection - Conexión a BD (opcional)
+ * @return array - Array asociativo con las políticas
+ */
+function getPasswordPolicies($connection = null) {
+    global $con;
+    $db = $connection ?? $con;
+
+    $policies = [
+        'min_length' => 8,
+        'require_uppercase' => 1,
+        'require_lowercase' => 1,
+        'require_numbers' => 1,
+        'require_special' => 1,
+        'password_expiry_days' => 90,
+        'prevent_reuse_count' => 5
+    ];
+
+    $query = "SELECT setting_name, setting_value FROM password_policy_config";
+    $result = mysqli_query($db, $query);
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $policies[$row['setting_name']] = $row['setting_value'];
+        }
+    }
+
+    return $policies;
+}
+
+/**
+ * Validar contraseña según las políticas actuales
+ *
+ * @param string $password - Contraseña a validar
+ * @param object $connection - Conexión a BD (opcional)
+ * @return array - ['valid' => bool, 'errors' => array]
+ */
+function validatePasswordAgainstPolicies($password, $connection = null) {
+    $policies = getPasswordPolicies($connection);
+    $errors = [];
+
+    // Validar longitud mínima
+    if (strlen($password) < $policies['min_length']) {
+        $errors[] = "La contraseña debe tener al menos {$policies['min_length']} caracteres";
+    }
+
+    // Validar mayúsculas
+    if ($policies['require_uppercase'] == 1 && !preg_match('/[A-Z]/', $password)) {
+        $errors[] = "La contraseña debe incluir al menos una letra mayúscula";
+    }
+
+    // Validar minúsculas
+    if ($policies['require_lowercase'] == 1 && !preg_match('/[a-z]/', $password)) {
+        $errors[] = "La contraseña debe incluir al menos una letra minúscula";
+    }
+
+    // Validar números
+    if ($policies['require_numbers'] == 1 && !preg_match('/[0-9]/', $password)) {
+        $errors[] = "La contraseña debe incluir al menos un número";
+    }
+
+    // Validar caracteres especiales
+    if ($policies['require_special'] == 1 && !preg_match('/[!@#$%^&*()_+\-=\[\]{};:\'",.<>?\/\\|`~]/', $password)) {
+        $errors[] = "La contraseña debe incluir al menos un carácter especial (!@#$%...)";
+    }
+
+    return [
+        'valid' => empty($errors),
+        'errors' => $errors
+    ];
+}
+
+/**
+ * Obtener configuración de email corporativo para inyectar en JavaScript
+ *
+ * @param object $connection - Conexión a BD (opcional)
+ * @return string - Código JavaScript con configuración
+ */
+function getEmailConfigForJS($connection = null) {
+    $domain = getSystemSetting('email_domain', 'clinica.dental.muelitas', $connection);
+    $template = getSystemSetting('email_format_template', '{firstname}.{lastname_initial}@{domain}', $connection);
+    $allow_custom = getSystemSetting('email_allow_custom', '0', $connection);
+
+    $js = "<script>\n";
+    $js .= "var CORPORATE_EMAIL_DOMAIN = '" . addslashes($domain) . "';\n";
+    $js .= "var EMAIL_FORMAT_TEMPLATE = '" . addslashes($template) . "';\n";
+    $js .= "var ALLOW_CUSTOM_EMAILS = " . ($allow_custom == '1' ? 'true' : 'false') . ";\n";
+    $js .= "</script>\n";
+
+    return $js;
+}
+
+/**
+ * Obtener políticas de contraseña para inyectar en JavaScript
+ *
+ * @param object $connection - Conexión a BD (opcional)
+ * @return string - Código JavaScript con políticas
+ */
+function getPasswordPoliciesForJS($connection = null) {
+    $policies = getPasswordPolicies($connection);
+
+    $js = "<script>\n";
+    $js .= "var PASSWORD_MIN_LENGTH = " . intval($policies['min_length']) . ";\n";
+    $js .= "var PASSWORD_REQUIRE_UPPERCASE = " . ($policies['require_uppercase'] == 1 ? 'true' : 'false') . ";\n";
+    $js .= "var PASSWORD_REQUIRE_LOWERCASE = " . ($policies['require_lowercase'] == 1 ? 'true' : 'false') . ";\n";
+    $js .= "var PASSWORD_REQUIRE_NUMBERS = " . ($policies['require_numbers'] == 1 ? 'true' : 'false') . ";\n";
+    $js .= "var PASSWORD_REQUIRE_SPECIAL = " . ($policies['require_special'] == 1 ? 'true' : 'false') . ";\n";
+    $js .= "</script>\n";
+
+    return $js;
+}
+
 ?>

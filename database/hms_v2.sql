@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 27, 2025 at 02:56 AM
+-- Generation Time: Oct 29, 2025 at 09:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -344,17 +344,54 @@ CREATE TABLE `active_users_summary` (
 
 CREATE TABLE `admins` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `username` varchar(255) DEFAULT NULL,
-  `permissions` longtext DEFAULT NULL CHECK (json_valid(`permissions`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `user_id` int(11) NOT NULL COMMENT 'FK a users - Un usuario solo puede ser un admin',
+  `employee_id` varchar(50) DEFAULT NULL COMMENT 'ID de empleado interno',
+  `department` enum('it','security','operations','systems','development') DEFAULT 'operations' COMMENT 'Departamento técnico',
+  `job_title` varchar(100) DEFAULT NULL COMMENT 'Título del puesto (ej: Security Analyst, SysAdmin)',
+  `hire_date` date DEFAULT NULL COMMENT 'Fecha de contratación',
+  `technical_area` varchar(100) DEFAULT NULL COMMENT 'Área técnica principal (ej: Seguridad de Sistemas, Redes)',
+  `certifications` text DEFAULT NULL COMMENT 'Certificaciones profesionales (CISSP, CEH, CompTIA, etc.)',
+  `specialization` varchar(100) DEFAULT NULL COMMENT 'Especialización técnica específica',
+  `years_of_experience` int(11) DEFAULT 0 COMMENT 'Años de experiencia en IT/Seguridad',
+  `education_level` enum('technical','bachelor','master','doctorate') DEFAULT NULL COMMENT 'Nivel de educación',
+  `office_phone` varchar(20) DEFAULT NULL COMMENT 'Teléfono de oficina',
+  `extension` varchar(10) DEFAULT NULL COMMENT 'Extensión telefónica',
+  `office_location` varchar(100) DEFAULT NULL COMMENT 'Ubicación física de la oficina',
+  `reports_to` int(11) DEFAULT NULL COMMENT 'ID del supervisor directo (FK a admins.id)',
+  `admin_level` enum('technical','operational','security','super') DEFAULT 'operational' COMMENT 'Nivel administrativo',
+  `clearance_level` enum('basic','elevated','critical') DEFAULT 'basic' COMMENT 'Nivel de clearance de seguridad',
+  `can_access_production` tinyint(1) DEFAULT 0 COMMENT 'Acceso a sistemas productivos',
+  `can_modify_security` tinyint(1) DEFAULT 0 COMMENT 'Puede modificar configuración de seguridad',
+  `office_hours` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Horario de oficina: {"lunes": "08:00-17:00", ...}' CHECK (json_valid(`office_hours`)),
+  `on_call_schedule` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Horario de guardia/soporte' CHECK (json_valid(`on_call_schedule`)),
+  `timezone` varchar(50) DEFAULT 'America/La_Paz' COMMENT 'Zona horaria',
+  `main_responsibilities` text DEFAULT NULL COMMENT 'Responsabilidades principales',
+  `assigned_systems` text DEFAULT NULL COMMENT 'Sistemas asignados (separados por comas)',
+  `current_projects` text DEFAULT NULL COMMENT 'Proyectos actuales',
+  `last_security_training` date DEFAULT NULL COMMENT 'Última capacitación de seguridad',
+  `security_training_expiry` date DEFAULT NULL COMMENT 'Vencimiento de capacitación',
+  `background_check_date` date DEFAULT NULL COMMENT 'Fecha de verificación de antecedentes',
+  `background_check_status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `total_incidents_resolved` int(11) DEFAULT 0 COMMENT 'Total de incidentes resueltos',
+  `average_resolution_time` decimal(5,2) DEFAULT 0.00 COMMENT 'Tiempo promedio de resolución (horas)',
+  `performance_rating` decimal(3,2) DEFAULT 0.00 COMMENT 'Calificación de desempeño (0-5)',
+  `last_performance_review` date DEFAULT NULL COMMENT 'Última evaluación de desempeño',
+  `status` enum('active','on_leave','suspended','terminated') DEFAULT 'active' COMMENT 'Estado del empleado',
+  `termination_date` date DEFAULT NULL COMMENT 'Fecha de terminación (si aplica)',
+  `termination_reason` varchar(255) DEFAULT NULL COMMENT 'Razón de terminación',
+  `notes` text DEFAULT NULL COMMENT 'Notas administrativas',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Datos profesionales de administradores técnicos';
 
 --
 -- Dumping data for table `admins`
 --
 
-INSERT INTO `admins` (`id`, `user_id`, `username`, `permissions`) VALUES
-(2, 8, 'admin', NULL);
+INSERT INTO `admins` (`id`, `user_id`, `employee_id`, `department`, `job_title`, `hire_date`, `technical_area`, `certifications`, `specialization`, `years_of_experience`, `education_level`, `office_phone`, `extension`, `office_location`, `reports_to`, `admin_level`, `clearance_level`, `can_access_production`, `can_modify_security`, `office_hours`, `on_call_schedule`, `timezone`, `main_responsibilities`, `assigned_systems`, `current_projects`, `last_security_training`, `security_training_expiry`, `background_check_date`, `background_check_status`, `total_incidents_resolved`, `average_resolution_time`, `performance_rating`, `last_performance_review`, `status`, `termination_date`, `termination_reason`, `notes`, `created_at`, `updated_at`) VALUES
+(2, 42, 'EMP00042', 'operations', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 'operational', 'basic', 0, 0, NULL, NULL, 'America/La_Paz', NULL, NULL, NULL, NULL, NULL, NULL, 'pending', 0, 0.00, 0.00, NULL, 'active', NULL, NULL, NULL, '2025-10-29 17:26:11', '2025-10-29 17:26:11'),
+(3, 44, 'EMP00044', 'operations', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 'operational', 'basic', 0, 0, NULL, NULL, 'America/La_Paz', NULL, NULL, NULL, NULL, NULL, NULL, 'pending', 0, 0.00, 0.00, NULL, 'active', NULL, NULL, NULL, '2025-10-29 17:34:17', '2025-10-29 17:34:17'),
+(4, 47, 'EMP00047', 'it', NULL, NULL, 'Sistemas', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 'operational', 'basic', 0, 1, NULL, NULL, 'America/La_Paz', NULL, NULL, NULL, NULL, NULL, NULL, 'pending', 0, 0.00, 0.00, NULL, 'active', NULL, NULL, NULL, '2025-10-29 18:56:24', '2025-10-29 19:00:56');
 
 -- --------------------------------------------------------
 
@@ -433,7 +470,29 @@ INSERT INTO `audit_role_changes` (`id`, `user_id`, `role_id`, `action`, `perform
 (55, NULL, 6, '', 8, '2025-10-26 23:40:03', NULL, NULL, NULL),
 (56, NULL, 5, '', 8, '2025-10-26 23:42:12', NULL, NULL, NULL),
 (57, NULL, 7, '', 8, '2025-10-26 23:43:30', NULL, NULL, NULL),
-(58, NULL, 4, '', 8, '2025-10-26 23:44:55', NULL, NULL, NULL);
+(58, NULL, 4, '', 8, '2025-10-26 23:44:55', NULL, NULL, NULL),
+(59, NULL, 1, '', 8, '2025-10-27 19:12:41', NULL, NULL, NULL),
+(60, 34, 3, 'assigned', 8, '2025-10-27 19:13:34', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(61, 35, 4, 'assigned', 8, '2025-10-28 11:31:44', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(62, 36, 4, 'assigned', 8, '2025-10-28 11:33:18', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(63, 37, 4, 'assigned', 37, '2025-10-28 12:41:50', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(64, 41, 3, 'assigned', 8, '2025-10-29 17:24:10', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(65, 42, 2, 'assigned', 8, '2025-10-29 17:26:11', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(66, 43, 4, 'assigned', 8, '2025-10-29 17:28:59', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(67, 45, 3, 'assigned', 8, '2025-10-29 18:12:33', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(68, 30, 10, 'assigned', 8, '2025-10-29 18:14:23', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(69, 44, 1, 'assigned', 8, '2025-10-29 18:18:17', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(70, 44, 2, 'assigned', 8, '2025-10-29 18:18:17', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(71, 43, 6, 'assigned', 8, '2025-10-29 18:21:30', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(72, 46, 3, 'assigned', 8, '2025-10-29 18:29:46', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(73, 47, 6, 'assigned', 8, '2025-10-29 18:56:24', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(74, 47, 5, 'assigned', 8, '2025-10-29 18:56:24', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(75, 47, 4, 'assigned', 8, '2025-10-29 18:56:24', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(76, 48, 3, 'assigned', 8, '2025-10-29 19:02:04', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(77, 49, 2, 'assigned', 8, '2025-10-29 19:08:04', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(78, 49, 3, 'assigned', 8, '2025-10-29 19:09:06', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(79, 50, 3, 'assigned', 8, '2025-10-29 19:34:19', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL),
+(80, 51, 4, 'assigned', 8, '2025-10-29 19:38:52', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', NULL);
 
 -- --------------------------------------------------------
 
@@ -443,17 +502,35 @@ INSERT INTO `audit_role_changes` (`id`, `user_id`, `role_id`, `action`, `perform
 
 CREATE TABLE `doctors` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `specilization` varchar(255) DEFAULT NULL,
-  `doctorName` varchar(255) DEFAULT NULL,
-  `address` varchar(255) DEFAULT NULL,
-  `docFees` varchar(255) DEFAULT NULL,
-  `contactno` bigint(11) DEFAULT NULL,
-  `docEmail` varchar(255) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  `creationDate` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updationDate` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `user_id` int(11) NOT NULL COMMENT 'FK a users - Un usuario solo puede ser un doctor',
+  `specialization_id` int(11) DEFAULT NULL COMMENT 'FK a doctorspecilization',
+  `license_number` varchar(50) DEFAULT NULL COMMENT 'Número de licencia médica (único)',
+  `years_of_experience` int(11) DEFAULT 0 COMMENT 'Años de experiencia profesional',
+  `consultation_fee` decimal(10,2) DEFAULT 0.00 COMMENT 'Honorarios por consulta',
+  `working_hours` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Horarios de trabajo: {"lunes": "08:00-17:00", ...}' CHECK (json_valid(`working_hours`)),
+  `max_daily_appointments` int(11) DEFAULT 20 COMMENT 'Máximo de citas por día',
+  `consultation_duration` int(11) DEFAULT 30 COMMENT 'Duración de consulta en minutos',
+  `total_appointments` int(11) DEFAULT 0 COMMENT 'Total de citas históricas',
+  `completed_appointments` int(11) DEFAULT 0 COMMENT 'Citas completadas exitosamente',
+  `cancelled_appointments` int(11) DEFAULT 0 COMMENT 'Citas canceladas',
+  `rating` decimal(3,2) DEFAULT 0.00 COMMENT 'Calificación promedio (0.00-5.00)',
+  `total_ratings` int(11) DEFAULT 0 COMMENT 'Cantidad de evaluaciones recibidas',
+  `bio` text DEFAULT NULL COMMENT 'Biografía/Descripción profesional',
+  `languages` varchar(255) DEFAULT 'Español' COMMENT 'Idiomas que habla (separados por comas)',
+  `status` enum('active','on_leave','retired','suspended') DEFAULT 'active' COMMENT 'Estado del doctor',
+  `hire_date` date DEFAULT NULL COMMENT 'Fecha de contratación',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Datos profesionales específicos de doctores';
+
+--
+-- Dumping data for table `doctors`
+--
+
+INSERT INTO `doctors` (`id`, `user_id`, `specialization_id`, `license_number`, `years_of_experience`, `consultation_fee`, `working_hours`, `max_daily_appointments`, `consultation_duration`, `total_appointments`, `completed_appointments`, `cancelled_appointments`, `rating`, `total_ratings`, `bio`, `languages`, `status`, `hire_date`, `created_at`, `updated_at`) VALUES
+(2, 41, NULL, NULL, 0, 0.00, NULL, 20, 30, 0, 0, 0, 0.00, 0, NULL, 'Español', 'active', NULL, '2025-10-29 17:24:10', '2025-10-29 17:24:10'),
+(3, 49, 1, NULL, 3, 150.00, NULL, 20, 30, 0, 0, 0, 0.00, 0, 'Hola xd', 'Español', 'active', NULL, '2025-10-29 19:08:04', '2025-10-29 19:09:06'),
+(4, 50, 5, NULL, 0, 300.00, NULL, 20, 30, 0, 0, 0, 0.00, 0, NULL, 'Español', 'active', NULL, '2025-10-29 19:34:19', '2025-10-29 19:34:19');
 
 -- --------------------------------------------------------
 
@@ -495,6 +572,26 @@ INSERT INTO `doctorspecilization` (`id`, `specilization`, `creationDate`, `updat
 (4, 'Periodontist', '2025-10-15 02:38:35', NULL),
 (5, 'Oral Surgeon', '2025-10-15 02:38:35', NULL),
 (6, 'Pediatric Dentist', '2025-10-15 02:38:35', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `doctors_backup_20251028`
+--
+
+CREATE TABLE `doctors_backup_20251028` (
+  `id` int(11) NOT NULL DEFAULT 0,
+  `user_id` int(11) DEFAULT NULL,
+  `doctorspecilization_id` int(255) DEFAULT NULL,
+  `doctorName` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `docFees` varchar(255) DEFAULT NULL,
+  `contactno` bigint(11) DEFAULT NULL,
+  `docEmail` varchar(255) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `creationDate` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updationDate` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -584,7 +681,81 @@ INSERT INTO `login_attempts` (`id`, `email`, `user_id`, `ip_address`, `user_agen
 (41, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-25 01:58:57'),
 (42, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-25 01:59:28'),
 (43, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-26 23:23:29'),
-(44, 'fredy.y@clinica.muelitas.com', 31, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 01:54:05');
+(44, 'fredy.y@clinica.muelitas.com', 31, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 01:54:05'),
+(45, 'adrian.m@clinica.muelitas.com', 30, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 02:26:42'),
+(46, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 02:27:21'),
+(47, 'adrian.m@clinica.muelitas.com', 30, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 02:28:01'),
+(48, 'pablo.c@clinica.muelitas.com', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_user_not_found', '2025-10-27 02:41:26'),
+(49, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 02:41:50'),
+(50, 'marcos.t@clinica.muelitas.com', 26, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'account_inactive', '2025-10-27 02:46:28'),
+(51, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 02:46:51'),
+(52, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 14:39:42'),
+(53, 'fredy.y@clinica.muelitas.com', 31, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 14:41:24'),
+(54, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 14:44:26'),
+(55, 'fredy.y@clinica.muelitas.com', 31, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 15:01:21'),
+(56, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 15:14:55'),
+(57, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 18:47:43'),
+(58, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 18:50:25'),
+(59, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-27 19:11:28'),
+(60, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 00:45:19'),
+(61, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 01:40:44'),
+(62, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 01:45:58'),
+(63, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 02:14:01'),
+(64, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 02:15:31'),
+(65, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-28 03:00:44'),
+(66, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:01:14'),
+(67, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:11:49'),
+(68, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:16:36'),
+(69, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:19:58'),
+(70, 'marcos.t@clinica.muelitas.com', 26, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'account_inactive', '2025-10-28 03:23:27'),
+(71, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:23:53'),
+(72, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:26:44'),
+(73, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:35:15'),
+(74, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:39:02'),
+(75, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 03:54:18'),
+(76, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 04:59:47'),
+(77, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:01:09'),
+(78, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:01:43'),
+(79, 'marcos.t@clinica.muelitas.com', 26, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'account_inactive', '2025-10-28 05:05:11'),
+(80, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:05:38'),
+(81, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-28 05:06:44'),
+(82, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:07:03'),
+(83, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:17:03'),
+(84, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:20:15'),
+(85, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:23:48'),
+(86, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:32:14'),
+(87, 'carlos.m@clinica.muelitas.com', 29, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 05:39:25'),
+(88, 'will@gmail.com', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_user_not_found', '2025-10-28 11:27:47'),
+(89, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 11:28:04'),
+(90, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-28 11:51:31'),
+(91, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-28 11:52:16'),
+(92, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'account_locked', '2025-10-28 11:52:25'),
+(93, 'juan.t@clinica.muelitas.com', 25, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'account_locked', '2025-10-28 11:57:55'),
+(94, 'juan.t@clinica.muelitas.com', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '', '2025-10-28 12:28:20'),
+(95, 'juan.c@clinica.dental.muelitas', 37, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 12:42:05'),
+(96, 'quisbert.c@clinica.dental.muelitas', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_user_not_found', '2025-10-28 13:21:52'),
+(97, 'quisbert.c@clinica.dental.muelitas', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '', '2025-10-28 13:26:30'),
+(98, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 13:27:11'),
+(99, 'juan.c@clinica.dental.muelitas', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '', '2025-10-28 14:29:52'),
+(100, 'juan.c@clinica.dental.muelitas', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '', '2025-10-28 14:30:18'),
+(101, 'willy.z@clinica.muelitas.com', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '', '2025-10-28 14:32:19'),
+(102, 'willy.z@clinica.muelitas.com', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '', '2025-10-28 14:33:52'),
+(103, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 14:39:23'),
+(104, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-28 14:45:32'),
+(105, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 18:09:48'),
+(106, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-29 18:52:19'),
+(107, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-29 18:52:41'),
+(108, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 18:53:59'),
+(109, 'gustavo.c@clinica.muelitas.com', 50, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:34:57'),
+(110, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:37:39'),
+(111, 'antonio.g@clinica.muelitas.com', 51, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:40:05'),
+(112, 'antonio.g@clinica.muelitas.com', 51, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:48:32'),
+(113, 'gustavo.c@clinica.muelitas.com', 50, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:49:32'),
+(114, 'willy.z@clinica.muelitas.com', 8, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:51:58'),
+(115, 'antonio.g@clinica.muelitas.com', 51, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-29 19:53:36'),
+(116, 'antonio.g@clinica.muelitas.com', 51, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'failed_password', '2025-10-29 19:53:59'),
+(117, 'antonio.g@clinica.muelitas.com', 51, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:54:35'),
+(118, 'gustavo.c@clinica.muelitas.com', 50, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 'success', '2025-10-29 19:56:00');
 
 -- --------------------------------------------------------
 
@@ -621,7 +792,7 @@ CREATE TABLE `password_policy_config` (
 --
 
 INSERT INTO `password_policy_config` (`id`, `setting_name`, `setting_value`, `description`, `updated_at`, `updated_by`) VALUES
-(1, 'min_length', '12', 'Longitud mínima de contraseña', '2025-10-25 01:25:34', 8),
+(1, 'min_length', '12', 'Longitud mínima de contraseña', '2025-10-28 17:38:27', 8),
 (2, 'max_length', '64', 'Longitud máxima de contraseña', '2025-10-21 00:20:33', NULL),
 (3, 'require_uppercase', '1', 'Requiere al menos 1 mayúscula (1=sí, 0=no)', '2025-10-21 00:20:33', NULL),
 (4, 'require_lowercase', '1', 'Requiere al menos 1 minúscula (1=sí, 0=no)', '2025-10-21 00:20:33', NULL),
@@ -633,7 +804,13 @@ INSERT INTO `password_policy_config` (`id`, `setting_name`, `setting_value`, `de
 (10, 'max_failed_attempts', '3', 'Intentos fallidos antes de bloqueo', '2025-10-21 00:20:33', NULL),
 (11, 'lockout_duration_minutes', '30', 'Minutos que dura el bloqueo de cuenta', '2025-10-21 00:20:33', NULL),
 (12, 'reset_token_expiry_minutes', '30', 'Minutos de validez del token de recuperación', '2025-10-21 00:20:33', NULL),
-(13, 'min_password_age_hours', '0', 'Horas mínimas entre cambios de contraseña (prevenir spam)', '2025-10-21 02:38:09', NULL);
+(13, 'min_password_age_hours', '0', 'Horas mínimas entre cambios de contraseña (prevenir spam)', '2025-10-21 02:38:09', NULL),
+(14, 'progressive_lockout_enabled', '1', 'Habilitar bloqueo progresivo (1=s??, 0=no)', '2025-10-28 17:53:00', NULL),
+(15, 'lockout_1st_minutes', '30', 'Duraci??n primer bloqueo en minutos', '2025-10-28 17:53:00', NULL),
+(16, 'lockout_2nd_minutes', '120', 'Duraci??n segundo bloqueo en minutos (2 horas)', '2025-10-28 17:53:00', NULL),
+(17, 'lockout_3rd_minutes', '1440', 'Duraci??n tercer bloqueo en minutos (24 horas)', '2025-10-28 17:53:00', NULL),
+(18, 'lockout_permanent_after', '4', 'N??mero de bloqueos antes del bloqueo permanente', '2025-10-28 17:53:00', NULL),
+(19, 'lockout_reset_days', '30', 'D??as sin incidentes para resetear contador (0=nunca resetear autom??ticamente)', '2025-10-28 17:53:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -676,19 +853,49 @@ DELIMITER ;
 
 CREATE TABLE `patients` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `address` varchar(255) DEFAULT NULL,
-  `city` varchar(255) DEFAULT NULL,
-  `gender` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `user_id` int(11) NOT NULL COMMENT 'FK a users - Un usuario solo puede ser un paciente',
+  `address` varchar(255) DEFAULT NULL COMMENT 'Dirección completa',
+  `city` varchar(100) DEFAULT NULL COMMENT 'Ciudad',
+  `state` varchar(100) DEFAULT NULL COMMENT 'Estado/Departamento',
+  `postal_code` varchar(20) DEFAULT NULL COMMENT 'Código postal',
+  `phone` varchar(20) DEFAULT NULL COMMENT 'Teléfono principal',
+  `emergency_contact` varchar(255) DEFAULT NULL COMMENT 'Nombre del contacto de emergencia',
+  `emergency_phone` varchar(20) DEFAULT NULL COMMENT 'Teléfono de emergencia',
+  `gender` enum('male','female','other','prefer_not_to_say') DEFAULT NULL COMMENT 'Género del paciente',
+  `date_of_birth` date DEFAULT NULL COMMENT 'Fecha de nacimiento',
+  `blood_type` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') DEFAULT NULL COMMENT 'Tipo de sangre',
+  `height` decimal(5,2) DEFAULT NULL COMMENT 'Altura en cm',
+  `weight` decimal(5,2) DEFAULT NULL COMMENT 'Peso en kg',
+  `allergies` text DEFAULT NULL COMMENT 'Alergias conocidas (separadas por comas)',
+  `chronic_conditions` text DEFAULT NULL COMMENT 'Condiciones crónicas o enfermedades preexistentes',
+  `current_medications` text DEFAULT NULL COMMENT 'Medicamentos que toma actualmente',
+  `past_surgeries` text DEFAULT NULL COMMENT 'Cirugías previas',
+  `family_medical_history` text DEFAULT NULL COMMENT 'Historial médico familiar relevante',
+  `has_insurance` tinyint(1) DEFAULT 0 COMMENT 'Tiene seguro médico',
+  `insurance_provider` varchar(100) DEFAULT NULL COMMENT 'Compañía de seguros',
+  `insurance_number` varchar(50) DEFAULT NULL COMMENT 'Número de póliza',
+  `insurance_expiry_date` date DEFAULT NULL COMMENT 'Fecha de vencimiento del seguro',
+  `total_appointments` int(11) DEFAULT 0 COMMENT 'Total de citas históricas',
+  `completed_appointments` int(11) DEFAULT 0 COMMENT 'Citas completadas',
+  `cancelled_appointments` int(11) DEFAULT 0 COMMENT 'Citas canceladas',
+  `last_appointment_date` date DEFAULT NULL COMMENT 'Fecha de la última cita',
+  `registration_date` date DEFAULT curdate() COMMENT 'Fecha de registro en el sistema',
+  `status` enum('active','inactive','deceased') DEFAULT 'active' COMMENT 'Estado del paciente',
+  `notes` text DEFAULT NULL COMMENT 'Notas administrativas adicionales',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Datos médicos y demográficos de pacientes';
 
 --
 -- Dumping data for table `patients`
 --
 
-INSERT INTO `patients` (`id`, `user_id`, `address`, `city`, `gender`) VALUES
-(9, 27, 'La Paz - Bolivia', 'CIUDAD LA PAZ', 'male'),
-(10, 28, 'La Paz - Bolivia', 'CIUDAD LA PAZ', '');
+INSERT INTO `patients` (`id`, `user_id`, `address`, `city`, `state`, `postal_code`, `phone`, `emergency_contact`, `emergency_phone`, `gender`, `date_of_birth`, `blood_type`, `height`, `weight`, `allergies`, `chronic_conditions`, `current_medications`, `past_surgeries`, `family_medical_history`, `has_insurance`, `insurance_provider`, `insurance_number`, `insurance_expiry_date`, `total_appointments`, `completed_appointments`, `cancelled_appointments`, `last_appointment_date`, `registration_date`, `status`, `notes`, `created_at`, `updated_at`) VALUES
+(2, 43, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, 0, 0, NULL, '2025-10-29', 'active', NULL, '2025-10-29 17:28:59', '2025-10-29 17:28:59'),
+(3, 45, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, 0, 0, NULL, '2025-10-29', 'active', NULL, '2025-10-29 18:12:33', '2025-10-29 18:12:33'),
+(4, 46, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, 0, 0, NULL, '2025-10-29', 'active', NULL, '2025-10-29 18:29:46', '2025-10-29 18:29:46'),
+(5, 48, 'La Paz - Bolivia', 'CIUDAD LA PAZ', NULL, NULL, '76587463', NULL, NULL, 'female', NULL, 'O+', NULL, NULL, 'ninguna', 'ninguna', NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, 0, 0, NULL, '2025-10-29', 'active', NULL, '2025-10-29 19:02:04', '2025-10-29 19:06:47'),
+(6, 51, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'male', '2014-03-29', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, 0, 0, 0, NULL, '2025-10-29', 'active', NULL, '2025-10-29 19:38:52', '2025-10-29 19:38:52');
 
 -- --------------------------------------------------------
 
@@ -896,13 +1103,6 @@ CREATE TABLE `role_permissions` (
 --
 
 INSERT INTO `role_permissions` (`id`, `role_id`, `permission_id`, `granted_at`, `granted_by`) VALUES
-(492, 1, 56, '2025-10-26 23:34:39', 8),
-(493, 1, 53, '2025-10-26 23:34:39', 8),
-(494, 1, 49, '2025-10-26 23:34:39', 8),
-(495, 1, 48, '2025-10-26 23:34:39', 8),
-(496, 1, 50, '2025-10-26 23:34:39', 8),
-(497, 1, 54, '2025-10-26 23:34:39', 8),
-(498, 1, 52, '2025-10-26 23:34:40', 8),
 (499, 10, 17, '2025-10-26 23:35:40', 8),
 (500, 10, 19, '2025-10-26 23:35:40', 8),
 (501, 10, 18, '2025-10-26 23:35:40', 8),
@@ -976,7 +1176,46 @@ INSERT INTO `role_permissions` (`id`, `role_id`, `permission_id`, `granted_at`, 
 (569, 4, 28, '2025-10-26 23:44:55', 8),
 (570, 4, 23, '2025-10-26 23:44:55', 8),
 (571, 4, 16, '2025-10-26 23:44:55', 8),
-(572, 4, 14, '2025-10-26 23:44:55', 8);
+(572, 4, 14, '2025-10-26 23:44:55', 8),
+(573, 1, 27, '2025-10-27 19:12:41', 8),
+(574, 1, 26, '2025-10-27 19:12:41', 8),
+(575, 1, 24, '2025-10-27 19:12:41', 8),
+(576, 1, 25, '2025-10-27 19:12:41', 8),
+(577, 1, 28, '2025-10-27 19:12:41', 8),
+(578, 1, 22, '2025-10-27 19:12:41', 8),
+(579, 1, 23, '2025-10-27 19:12:41', 8),
+(580, 1, 17, '2025-10-27 19:12:41', 8),
+(581, 1, 19, '2025-10-27 19:12:41', 8),
+(582, 1, 18, '2025-10-27 19:12:41', 8),
+(583, 1, 20, '2025-10-27 19:12:41', 8),
+(584, 1, 21, '2025-10-27 19:12:41', 8),
+(585, 1, 16, '2025-10-27 19:12:41', 8),
+(586, 1, 11, '2025-10-27 19:12:41', 8),
+(587, 1, 13, '2025-10-27 19:12:41', 8),
+(588, 1, 12, '2025-10-27 19:12:41', 8),
+(589, 1, 15, '2025-10-27 19:12:41', 8),
+(590, 1, 14, '2025-10-27 19:12:41', 8),
+(591, 1, 10, '2025-10-27 19:12:41', 8),
+(592, 1, 9, '2025-10-27 19:12:41', 8),
+(593, 1, 56, '2025-10-27 19:12:41', 8),
+(594, 1, 58, '2025-10-27 19:12:41', 8),
+(595, 1, 57, '2025-10-27 19:12:41', 8),
+(596, 1, 55, '2025-10-27 19:12:41', 8),
+(597, 1, 53, '2025-10-27 19:12:41', 8),
+(598, 1, 51, '2025-10-27 19:12:41', 8),
+(599, 1, 49, '2025-10-27 19:12:41', 8),
+(600, 1, 48, '2025-10-27 19:12:41', 8),
+(601, 1, 50, '2025-10-27 19:12:41', 8),
+(602, 1, 54, '2025-10-27 19:12:41', 8),
+(603, 1, 52, '2025-10-27 19:12:41', 8),
+(604, 1, 2, '2025-10-27 19:12:41', 8),
+(605, 1, 4, '2025-10-27 19:12:41', 8),
+(606, 1, 3, '2025-10-27 19:12:41', 8),
+(607, 1, 5, '2025-10-27 19:12:41', 8),
+(608, 1, 7, '2025-10-27 19:12:41', 8),
+(609, 1, 6, '2025-10-27 19:12:41', 8),
+(610, 1, 8, '2025-10-27 19:12:41', 8),
+(611, 1, 1, '2025-10-27 19:12:41', 8);
 
 -- --------------------------------------------------------
 
@@ -1129,7 +1368,56 @@ INSERT INTO `security_logs` (`id`, `user_id`, `event_type`, `event_description`,
 (112, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 00:20:18'),
 (113, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 00:39:53'),
 (114, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 01:53:28'),
-(115, 31, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: manage_roles', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"manage_roles\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-roles.php\",\"method\":\"GET\"}', '2025-10-27 01:55:05');
+(115, 31, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: manage_roles', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"manage_roles\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-roles.php\",\"method\":\"GET\"}', '2025-10-27 01:55:05'),
+(116, 30, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 02:32:09'),
+(117, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 14:39:55'),
+(118, 31, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: manage_roles', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"manage_roles\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-roles.php\",\"method\":\"GET\"}', '2025-10-27 14:43:26'),
+(119, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 14:57:51'),
+(120, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 18:47:03'),
+(121, 25, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 19:10:26'),
+(122, 25, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: manage_roles', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"manage_roles\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-roles.php\",\"method\":\"GET\"}', '2025-10-27 19:10:43'),
+(123, 8, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-27 19:11:41');
+INSERT INTO `security_logs` (`id`, `user_id`, `event_type`, `event_description`, `ip_address`, `user_agent`, `additional_data`, `created_at`) VALUES
+(124, 25, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php\",\"method\":\"GET\"}', '2025-10-28 01:44:44'),
+(125, 37, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php?tab=listado\",\"method\":\"GET\"}', '2025-10-28 12:42:20'),
+(126, 37, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php?tab=stats\",\"method\":\"GET\"}', '2025-10-28 12:42:25'),
+(127, 37, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php?tab=logs\",\"method\":\"GET\"}', '2025-10-28 12:42:28'),
+(128, 37, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php?tab=listado\",\"method\":\"GET\"}', '2025-10-28 12:42:31'),
+(129, 37, 'unauthorized_access', 'Intento de acceso no autorizado - Tipo: permission, Requerido: view_users', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', '{\"access_type\":\"permission\",\"required\":\"view_users\",\"page\":\"\\/hospital\\/hms\\/admin\\/manage-users.php?tab=stats\",\"method\":\"GET\"}', '2025-10-28 12:42:33');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `id` int(11) NOT NULL,
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `setting_category` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `system_settings`
+--
+
+INSERT INTO `system_settings` (`id`, `setting_key`, `setting_value`, `setting_category`, `description`, `updated_at`, `updated_by`) VALUES
+(1, 'hospital_name', 'Clínica Dental Muelitas', 'general', 'Nombre oficial del hospital o clínica', '2025-10-28 08:55:57', NULL),
+(2, 'hospital_address', '', 'general', 'Dirección física del hospital', '2025-10-28 08:55:57', NULL),
+(3, 'hospital_phone', '', 'general', 'Teléfono de contacto principal', '2025-10-28 08:55:57', NULL),
+(4, 'hospital_email', '', 'general', 'Email de contacto del hospital', '2025-10-28 08:55:57', NULL),
+(5, 'start_time', '08:00', 'hours', 'Hora de inicio de atención', '2025-10-28 08:55:57', NULL),
+(6, 'end_time', '18:00', 'hours', 'Hora de cierre de atención', '2025-10-28 08:55:57', NULL),
+(7, 'email_notifications', '1', 'notifications', 'Enviar notificaciones por email (1=activo, 0=inactivo)', '2025-10-28 08:55:57', NULL),
+(8, 'sms_notifications', '0', 'notifications', 'Enviar notificaciones por SMS (1=activo, 0=inactivo)', '2025-10-28 08:55:57', NULL),
+(9, 'email_domain', 'clinica.muelitas.com', 'email', 'Dominio corporativo para emails', '2025-10-28 13:26:21', NULL),
+(10, 'email_format_template', '{firstname}.{lastname_initial}@{domain}', 'email', 'Plantilla de formato de email. Tokens: {firstname}, {lastname}, {firstname_initial}, {lastname_initial}, {domain}', '2025-10-28 08:55:57', NULL),
+(11, 'email_auto_generate', '1', 'email', 'Auto-generar emails al crear usuarios (1=sí, 0=no)', '2025-10-28 08:55:57', NULL),
+(12, 'email_allow_custom', '0', 'email', 'Permitir emails personalizados fuera del formato (1=sí, 0=no)', '2025-10-28 08:55:57', NULL);
 
 -- --------------------------------------------------------
 
@@ -1221,6 +1509,8 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   `last_login` timestamp NULL DEFAULT NULL,
   `failed_login_attempts` int(11) DEFAULT 0 COMMENT 'Contador de intentos fallidos consecutivos',
+  `lockout_count` int(11) DEFAULT 0,
+  `last_lockout_date` datetime DEFAULT NULL,
   `account_locked_until` datetime DEFAULT NULL COMMENT 'Fecha/hora hasta cuando la cuenta permanece bloqueada',
   `password_expires_at` datetime DEFAULT NULL COMMENT 'Fecha de expiración de la contraseña (90 días)',
   `password_changed_at` datetime DEFAULT NULL COMMENT 'Fecha del último cambio de contraseña',
@@ -1232,16 +1522,31 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password`, `user_type`, `full_name`, `status`, `created_at`, `updated_at`, `last_login`, `failed_login_attempts`, `account_locked_until`, `password_expires_at`, `password_changed_at`, `last_login_ip`, `force_password_change`) VALUES
-(8, 'willy.z@clinica.muelitas.com', '$2y$12$xpRZx/B1nX.nHu9uV0eY6ecbfxFDfbJhibXgKsW9xtoWcbk4Za7m.', 'admin', 'Willy Perez Marco', 'active', '2025-10-21 00:57:55', '2025-10-26 23:23:29', '2025-10-26 23:23:29', 0, NULL, '2026-01-18 20:57:55', '2025-10-20 20:57:55', '::1', 0),
-(24, 'pablo.s@clinica.muelitas.com', '$2y$10$VZZC5SxyYa.XPJ00cED9MeaDtEDZJo3RVNfAzaIzfmpsoVIZhEU6a', 'patient', 'Pablo Chávez Sánchez', 'active', '2025-10-24 00:37:22', '2025-10-24 02:45:30', '2025-10-24 00:44:09', 0, NULL, NULL, NULL, '::1', 0),
-(25, 'juan.t@clinica.muelitas.com', '$2y$10$1bj.m68c2pFWtXie1tvonOR7dAJwlgK5NiGe2q7WMoZeinJIFeUHG', 'patient', 'Juan Andres Torrez', 'active', '2025-10-24 00:48:37', '2025-10-25 01:41:01', '2025-10-25 01:41:01', 0, NULL, NULL, NULL, '::1', 0),
-(26, 'marcos.t@clinica.muelitas.com', '$2y$10$HFyVWzWRyM8/lpmgM0zO/eIjCphn1ucufvwrG8UASRzd/tqmi1sD2', 'doctor', 'Marcos Torrico Gutiérrez', 'inactive', '2025-10-24 00:55:25', '2025-10-24 02:48:05', NULL, 0, NULL, NULL, NULL, NULL, 0),
-(27, 'quenta.f@clinica.muelitas.com', '$2y$10$UVW7UQllD36gM4xJaU79v.dzh5XQ/9MexqMpVC8Yl1XRhja7wVbt6', 'patient', 'Quenta Flores Ramos', 'inactive', '2025-10-24 01:22:17', '2025-10-24 01:49:51', '2025-10-24 01:22:32', 0, NULL, NULL, NULL, '::1', 0),
-(28, 'paul.g@clinica.muelitas.com', '$2y$10$FT/ugM8GMFsQ4nUUUM9tD.ie6tAWDjym8fVgeoh/K2T85MgKlO/Wu', 'patient', 'Paul Gomez Lopez', 'active', '2025-10-24 01:47:03', '2025-10-24 01:47:46', '2025-10-24 01:47:46', 0, NULL, NULL, NULL, '::1', 0),
-(29, 'carlos.m@clinica.muelitas.com', '$2y$10$iQ1/PtzCFJJjwUr/P5AywOMZOSp8nQCFJwGktK6lxeaJCUFw2Bu.i', 'doctor', 'Carlos Molina Vázquez', 'active', '2025-10-24 01:52:23', '2025-10-25 01:32:34', NULL, 3, '2025-10-24 22:02:34', NULL, NULL, NULL, 0),
-(30, 'adrian.m@clinica.muelitas.com', '$2y$10$PIrEjHVJ2F71XWBf5LcnSeuTLlXGTKfDHuXjF8oAOqmSgQ7JRbTrq', 'patient', 'Adrian Medina Jiménez', 'active', '2025-10-24 02:36:18', '2025-10-24 02:36:18', NULL, 0, NULL, NULL, NULL, NULL, 0),
-(31, 'fredy.y@clinica.muelitas.com', '$2y$10$AHhB3AXA1xKXqGivbbWlpOXjWqus8Rmz/naa4fEHFudKCvgdVzNgO', 'admin', 'Fredy Yousaf Lon', 'active', '2025-10-26 23:30:14', '2025-10-27 01:54:05', '2025-10-27 01:54:05', 0, NULL, NULL, NULL, '::1', 0);
+INSERT INTO `users` (`id`, `email`, `password`, `user_type`, `full_name`, `status`, `created_at`, `updated_at`, `last_login`, `failed_login_attempts`, `lockout_count`, `last_lockout_date`, `account_locked_until`, `password_expires_at`, `password_changed_at`, `last_login_ip`, `force_password_change`) VALUES
+(8, 'willy.z@clinica.muelitas.com', '$2y$12$xpRZx/B1nX.nHu9uV0eY6ecbfxFDfbJhibXgKsW9xtoWcbk4Za7m.', 'admin', 'Willy Perez Marco', 'active', '2025-10-21 00:57:55', '2025-10-29 19:51:58', '2025-10-29 19:51:58', 0, 0, NULL, NULL, '2026-01-18 20:57:55', '2025-10-20 20:57:55', '::1', 0),
+(24, 'pablo.s@clinica.muelitas.com', '$2y$10$VZZC5SxyYa.XPJ00cED9MeaDtEDZJo3RVNfAzaIzfmpsoVIZhEU6a', 'patient', 'Pablo Chávez Sánchez', 'active', '2025-10-24 00:37:22', '2025-10-24 02:45:30', '2025-10-24 00:44:09', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(25, 'juan.t@clinica.muelitas.com', '$2y$10$1bj.m68c2pFWtXie1tvonOR7dAJwlgK5NiGe2q7WMoZeinJIFeUHG', 'patient', 'Juan Andres Torrez', 'inactive', '2025-10-24 00:48:37', '2025-10-29 18:28:10', '2025-10-28 05:20:15', 3, 0, NULL, '2025-10-28 08:22:25', NULL, NULL, '::1', 0),
+(26, 'marcos.t@clinica.muelitas.com', '$2y$10$HFyVWzWRyM8/lpmgM0zO/eIjCphn1ucufvwrG8UASRzd/tqmi1sD2', 'doctor', 'Marcos Torrico Gutiérrez', 'inactive', '2025-10-24 00:55:25', '2025-10-24 02:48:05', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(27, 'quenta.f@clinica.muelitas.com', '$2y$10$UVW7UQllD36gM4xJaU79v.dzh5XQ/9MexqMpVC8Yl1XRhja7wVbt6', 'patient', 'Quenta Flores Ramos', 'inactive', '2025-10-24 01:22:17', '2025-10-24 01:49:51', '2025-10-24 01:22:32', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(28, 'paul.g@clinica.muelitas.com', '$2y$10$FT/ugM8GMFsQ4nUUUM9tD.ie6tAWDjym8fVgeoh/K2T85MgKlO/Wu', 'patient', 'Paul Gomez Lopez', 'active', '2025-10-24 01:47:03', '2025-10-24 01:47:46', '2025-10-24 01:47:46', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(29, 'carlos.m@clinica.muelitas.com', '$2y$10$iQ1/PtzCFJJjwUr/P5AywOMZOSp8nQCFJwGktK6lxeaJCUFw2Bu.i', 'doctor', 'Carlos Molina Vázquez', 'active', '2025-10-24 01:52:23', '2025-10-28 05:39:25', '2025-10-28 05:39:25', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(30, 'adrian.m@clinica.muelitas.com', '$2y$10$PIrEjHVJ2F71XWBf5LcnSeuTLlXGTKfDHuXjF8oAOqmSgQ7JRbTrq', 'patient', 'Adrian Medina Jiménez', 'active', '2025-10-24 02:36:18', '2025-10-27 02:28:01', '2025-10-27 02:28:01', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(31, 'fredy.y@clinica.muelitas.com', '$2y$10$AHhB3AXA1xKXqGivbbWlpOXjWqus8Rmz/naa4fEHFudKCvgdVzNgO', 'admin', 'Fredy Yousaf Lon', 'active', '2025-10-26 23:30:14', '2025-10-27 15:01:21', '2025-10-27 15:01:21', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(34, 'gustavo.quisbert.c@ucb.edu.bo', '$2y$10$x8oUdXTz8TkcwAj9OeFCcuSQaMV3rnmsHA2zR7Gq/RjRhRbzjzUwe', 'doctor', 'gustavo', 'blocked', '2025-10-27 19:13:34', '2025-10-28 11:50:32', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(35, 'gustavo.walter.q@clinica.dental.muelitas', '$2y$10$nCRMKN08x5oe7XcDiTMo6uVBVK1yUAAc.zTT2v6gsVt../y4x9gyy', 'patient', 'Gustavo Walter Quisbert Chana', 'inactive', '2025-10-28 11:31:44', '2025-10-28 11:34:26', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(36, 'gustavo.q@clinica.dental.muelitas', '$2y$10$9aomuZCJkKJngO.okkjjKe5tciREwBeB82NAkWnSpehb8M7l5Ppci', 'patient', 'Gustavo Quisbert Chana', 'inactive', '2025-10-28 11:33:18', '2025-10-28 11:34:32', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(37, 'juan.c@clinica.dental.muelitas', '$2y$10$o7IA56/YQigcZAvbf3fvHeYtAxYX49VIjKEHWEMFkn5sKdk2mCTj2', 'patient', 'Juan Jose Claros Sanchez', 'active', '2025-10-28 12:41:50', '2025-10-28 12:42:05', '2025-10-28 12:42:05', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(41, 'antonio.gs@clinica.muelitas.com', '$2y$10$UBFQGcEazCtLF4qiIsPIUOWZprV3/mjTPMC85sBlcZqKk6PkimG82', 'doctor', 'Antonio Doria Gutierrez Ramirez', 'active', '2025-10-29 17:24:10', '2025-10-29 18:40:03', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(42, 'maria.p@clinica.muelitas.com', '$2y$10$VAJnvJsrENZLpl9124XaPe6PtGJS3Cv1BiuJ2uDlkgW4LYYiXyIz2', 'admin', 'Maria Fernanda  Perez Velasquez', 'active', '2025-10-29 17:26:11', '2025-10-29 17:26:11', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(43, 'juan.c@clinica.muelitas.com', '$2y$10$AtMbmKcizQ7jHsui999QWePHo5OPIsAYSuWiwfkU.EQFk.GqCNGve', 'patient', 'Juan Jose Claros Perez', 'active', '2025-10-29 17:28:59', '2025-10-29 17:28:59', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(44, 'juan.p@clinica.muelitas.com', '$2y$10$GvGZ/9fqKyk6WA6zySvHl.FVwM3AEWnko.DeOzRPcbIpsar6ih5Ou', 'admin', 'Juan Jose Claros Perez', 'active', '2025-10-29 17:34:17', '2025-10-29 17:34:17', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(45, 'jose.c@clinica.muelitas.com', '$2y$10$IxJNqCgro2B1xOnyfOUfHuOCwMNX0c6UKk3NizGlEePpfFhE7F05u', 'patient', 'Juan Jose Claros Perez', 'active', '2025-10-29 18:12:33', '2025-10-29 18:12:33', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(46, 'julio.g@clinica.muelitas.com', '$2y$10$dCZV4LrzHZEQmCMmn.ARmeQWQ1FjMKLpuTMfupFZOqDjdib7V/43W', 'patient', 'Julio Cesar Gutierrez Ramirez', 'active', '2025-10-29 18:29:45', '2025-10-29 18:29:45', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(47, 'samuel.d@clinica.muelitas.com', '$2y$10$f1gTWnuRIXRABMp3kEbuAOjSQshLE/zEXKeuzuBX0.GBCG7LSDuo.', 'admin', 'Samuel Doria Medina', 'active', '2025-10-29 18:56:24', '2025-10-29 18:56:24', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(48, 'jose.p@clinica.muelitas.com', '$2y$10$Ig8xVYd8enMwcETz43ECguGwYGU1FYW/N0R7L8J2YYiuzFJ9AQ3XC', 'patient', 'Juan Jose Claros Perez', 'active', '2025-10-29 19:02:04', '2025-10-29 19:02:04', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(49, 'gustavo.q@clinica.muelitas.com', '$2y$10$VpOH/NEeG13t.bA0aaUjMOC1YJbZ5pzn809om9TmPsBclSSoVQIKe', 'doctor', 'Gustavo Walter Quisbert Chana', 'active', '2025-10-29 19:08:04', '2025-10-29 19:08:04', NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0),
+(50, 'gustavo.c@clinica.muelitas.com', '$2y$10$Pc1ibcfpiBx5i0OFJ2MsUO93kNY7jrDpT4rgsgU7PlmY4U8qCwNJq', 'doctor', 'Gustavo Walter Quisbert Chana', 'active', '2025-10-29 19:34:19', '2025-10-29 19:56:00', '2025-10-29 19:56:00', 0, 0, NULL, NULL, NULL, NULL, '::1', 0),
+(51, 'antonio.g@clinica.muelitas.com', '$2y$10$2JVlobHRoCStxJ3h9caUl.09/VFu/8H9KQX/xVokslcFu66YMMBoy', 'patient', 'Antonio Doria Gutierrez Ramirez', 'active', '2025-10-29 19:38:52', '2025-10-29 19:54:34', '2025-10-29 19:54:34', 0, 0, NULL, NULL, NULL, NULL, '::1', 0);
 
 --
 -- Triggers `users`
@@ -1354,7 +1659,42 @@ INSERT INTO `user_change_history` (`id`, `user_id`, `changed_by`, `change_type`,
 (78, 24, 8, 'update', 'email', 'pablo.c@clinica.muelitas.com', 'pablo.s@clinica.muelitas.com', 'Usuario actualizado desde panel de administración', '0', NULL, '2025-10-24 02:45:30'),
 (79, 26, 8, 'status_change', 'status', 'active', 'inactive', 'Usuario eliminado desde panel de administración', '0', NULL, '2025-10-24 02:48:05'),
 (80, 31, 31, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-26 23:30:14'),
-(81, 31, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-26 23:30:14');
+(81, 31, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-26 23:30:14'),
+(86, 34, 34, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-27 19:13:34'),
+(87, 34, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-27 19:13:34'),
+(88, 35, 35, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-28 11:31:44'),
+(89, 35, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-28 11:31:44'),
+(90, 36, 36, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-28 11:33:18'),
+(91, 36, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-28 11:33:18'),
+(92, 34, 8, 'status_change', 'status', 'active', 'inactive', 'Usuario eliminado desde panel de administración', '0', NULL, '2025-10-28 11:33:36'),
+(93, 35, 8, 'status_change', 'status', 'active', 'inactive', 'Usuario eliminado desde panel de administración', '0', NULL, '2025-10-28 11:34:26'),
+(94, 36, 8, 'status_change', 'status', 'active', 'inactive', 'Usuario eliminado desde panel de administración', '0', NULL, '2025-10-28 11:34:32'),
+(95, 34, 8, 'status_change', 'status', 'inactive', 'blocked', 'Usuario actualizado desde panel de administración', '0', NULL, '2025-10-28 11:50:32'),
+(96, 37, 37, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-28 12:41:50'),
+(100, 41, 41, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 17:24:10'),
+(101, 41, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 17:24:10'),
+(102, 42, 42, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 17:26:11'),
+(103, 42, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 17:26:11'),
+(104, 43, 43, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 17:28:59'),
+(105, 43, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 17:28:59'),
+(106, 44, 44, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 17:34:17'),
+(107, 44, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 17:34:17'),
+(108, 45, 45, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 18:12:33'),
+(109, 45, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 18:12:33'),
+(110, 25, 8, 'status_change', 'status', 'active', 'inactive', 'Usuario eliminado desde panel de administración', '0', NULL, '2025-10-29 18:28:10'),
+(111, 46, 46, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 18:29:45'),
+(112, 46, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 18:29:45'),
+(113, 41, 8, 'update', 'email', 'antonio.g@clinica.muelitas.com', 'antonio.gs@clinica.muelitas.com', 'Usuario actualizado desde panel de administración', '0', NULL, '2025-10-29 18:40:03'),
+(114, 47, 47, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 18:56:24'),
+(115, 47, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 18:56:24'),
+(116, 48, 48, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 19:02:04'),
+(117, 48, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 19:02:04'),
+(118, 49, 49, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 19:08:04'),
+(119, 49, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 19:08:04'),
+(120, 50, 50, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 19:34:19'),
+(121, 50, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 19:34:19'),
+(122, 51, 51, 'create', NULL, NULL, NULL, 'Usuario creado', NULL, NULL, '2025-10-29 19:38:52'),
+(123, 51, 8, 'create', NULL, NULL, NULL, 'Usuario creado desde panel de administración', '0', NULL, '2025-10-29 19:38:52');
 
 -- --------------------------------------------------------
 
@@ -1435,7 +1775,28 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `assigned_at`, `assigned_b
 (23, 29, 3, '2025-10-24 01:52:23', 8, NULL, 1),
 (26, 24, 4, '2025-10-24 03:29:01', 8, NULL, 1),
 (28, 31, 10, '2025-10-26 23:30:14', 8, NULL, 1),
-(29, 30, 4, '2025-10-26 23:30:47', 8, NULL, 1);
+(29, 30, 4, '2025-10-26 23:30:47', 8, NULL, 1),
+(30, 34, 3, '2025-10-27 19:13:34', 8, NULL, 1),
+(31, 35, 4, '2025-10-28 11:31:44', 8, NULL, 1),
+(32, 36, 4, '2025-10-28 11:33:18', 8, NULL, 1),
+(33, 37, 4, '2025-10-28 12:41:50', 37, NULL, 1),
+(34, 41, 3, '2025-10-29 17:24:10', 8, NULL, 1),
+(35, 42, 2, '2025-10-29 17:26:11', 8, NULL, 1),
+(36, 43, 4, '2025-10-29 17:28:59', 8, NULL, 1),
+(37, 45, 3, '2025-10-29 18:12:33', 8, NULL, 1),
+(38, 30, 10, '2025-10-29 18:14:23', 8, NULL, 1),
+(39, 44, 1, '2025-10-29 18:18:17', 8, NULL, 1),
+(40, 44, 2, '2025-10-29 18:18:17', 8, NULL, 1),
+(41, 43, 6, '2025-10-29 18:21:30', 8, NULL, 1),
+(42, 46, 3, '2025-10-29 18:29:46', 8, NULL, 1),
+(43, 47, 6, '2025-10-29 18:56:24', 8, NULL, 1),
+(44, 47, 5, '2025-10-29 18:56:24', 8, NULL, 1),
+(45, 47, 4, '2025-10-29 18:56:24', 8, NULL, 1),
+(46, 48, 3, '2025-10-29 19:02:04', 8, NULL, 1),
+(47, 49, 2, '2025-10-29 19:08:04', 8, NULL, 1),
+(48, 49, 3, '2025-10-29 19:09:06', 8, NULL, 1),
+(49, 50, 3, '2025-10-29 19:34:19', 8, NULL, 1),
+(50, 51, 4, '2025-10-29 19:38:52', 8, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -1615,7 +1976,15 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 ALTER TABLE `admins`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD UNIQUE KEY `employee_id` (`employee_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_department` (`department`),
+  ADD KEY `idx_admin_level` (`admin_level`),
+  ADD KEY `idx_clearance_level` (`clearance_level`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_employee_id` (`employee_id`),
+  ADD KEY `idx_reports_to` (`reports_to`);
 
 --
 -- Indexes for table `appointment`
@@ -1639,7 +2008,13 @@ ALTER TABLE `audit_role_changes`
 --
 ALTER TABLE `doctors`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD UNIQUE KEY `license_number` (`license_number`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_specialization` (`specialization_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_rating` (`rating`),
+  ADD KEY `idx_consultation_fee` (`consultation_fee`);
 
 --
 -- Indexes for table `doctorslog`
@@ -1697,7 +2072,13 @@ ALTER TABLE `password_reset_tokens`
 --
 ALTER TABLE `patients`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_city` (`city`),
+  ADD KEY `idx_blood_type` (`blood_type`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_date_of_birth` (`date_of_birth`),
+  ADD KEY `idx_insurance_provider` (`insurance_provider`);
 
 --
 -- Indexes for table `permissions`
@@ -1755,6 +2136,14 @@ ALTER TABLE `security_logs`
   ADD KEY `idx_event_type` (`event_type`),
   ADD KEY `idx_ip_address` (`ip_address`),
   ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `setting_key` (`setting_key`),
+  ADD KEY `updated_by` (`updated_by`);
 
 --
 -- Indexes for table `tblcontactus`
@@ -1849,7 +2238,7 @@ ALTER TABLE `user_sessions`
 -- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `appointment`
@@ -1861,13 +2250,13 @@ ALTER TABLE `appointment`
 -- AUTO_INCREMENT for table `audit_role_changes`
 --
 ALTER TABLE `audit_role_changes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `doctors`
 --
 ALTER TABLE `doctors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `doctorslog`
@@ -1885,7 +2274,7 @@ ALTER TABLE `doctorspecilization`
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
 
 --
 -- AUTO_INCREMENT for table `password_history`
@@ -1897,7 +2286,7 @@ ALTER TABLE `password_history`
 -- AUTO_INCREMENT for table `password_policy_config`
 --
 ALTER TABLE `password_policy_config`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `password_reset_tokens`
@@ -1909,7 +2298,7 @@ ALTER TABLE `password_reset_tokens`
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -1939,13 +2328,19 @@ ALTER TABLE `role_hierarchy`
 -- AUTO_INCREMENT for table `role_permissions`
 --
 ALTER TABLE `role_permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=573;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=612;
 
 --
 -- AUTO_INCREMENT for table `security_logs`
 --
 ALTER TABLE `security_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+
+--
+-- AUTO_INCREMENT for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `tblcontactus`
@@ -1969,13 +2364,13 @@ ALTER TABLE `userlog`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `user_change_history`
 --
 ALTER TABLE `user_change_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
 
 --
 -- AUTO_INCREMENT for table `user_notes`
@@ -1993,7 +2388,7 @@ ALTER TABLE `user_profile_photos`
 -- AUTO_INCREMENT for table `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `user_sessions`
@@ -2009,7 +2404,8 @@ ALTER TABLE `user_sessions`
 -- Constraints for table `admins`
 --
 ALTER TABLE `admins`
-  ADD CONSTRAINT `admins_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `admins_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `admins_ibfk_2` FOREIGN KEY (`reports_to`) REFERENCES `admins` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `audit_role_changes`
@@ -2023,7 +2419,8 @@ ALTER TABLE `audit_role_changes`
 -- Constraints for table `doctors`
 --
 ALTER TABLE `doctors`
-  ADD CONSTRAINT `doctors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `doctors_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `doctors_ibfk_2` FOREIGN KEY (`specialization_id`) REFERENCES `doctorspecilization` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `login_attempts`
@@ -2088,6 +2485,12 @@ ALTER TABLE `role_permissions`
 --
 ALTER TABLE `security_logs`
   ADD CONSTRAINT `security_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD CONSTRAINT `system_settings_ibfk_1` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `user_change_history`

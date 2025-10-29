@@ -2,6 +2,7 @@
 session_start();
 error_reporting(0);
 include('include/config.php');
+include('../include/rbac-functions.php');
 
 if(isset($_GET['cancel']))
 {
@@ -28,6 +29,99 @@ if(isset($_GET['cancel']))
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/plugins.css">
     <link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
+    <style>
+        /* Mejoras visuales para historial de citas de doctores */
+        .mainTitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        #page-title {
+            margin-bottom: 30px;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            color: white;
+        }
+        
+        .table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            color: #2c3e50;
+        }
+        
+        .status-badge {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled-patient {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-cancelled-doctor {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-transparent {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-transparent:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .container-fullw {
+            padding: 30px;
+        }
+    </style>
 </head>
 <body>
     <div id="app">        
@@ -99,16 +193,16 @@ while($row=mysqli_fetch_array($sql))
                                                 <td>
 <?php if(($row['userStatus']==1) && ($row['doctorStatus']==1))  
 {
-    echo "Activa";
+    echo '<span class="status-badge status-active"><i class="fa fa-check-circle"></i> Activa</span>';
 }
 if(($row['userStatus']==0) && ($row['doctorStatus']==1))  
 {
-    echo "Cancelada por el Paciente";
+    echo '<span class="status-badge status-cancelled-patient"><i class="fa fa-times-circle"></i> Cancelada por el Paciente</span>';
 }
 
 if(($row['userStatus']==1) && ($row['doctorStatus']==0))  
 {
-    echo "Cancelada por ti";
+    echo '<span class="status-badge status-cancelled-doctor"><i class="fa fa-ban"></i> Cancelada por ti</span>';
 }
 
 

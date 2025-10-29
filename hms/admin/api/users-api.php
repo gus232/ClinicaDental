@@ -162,6 +162,43 @@ switch ($action) {
                 $user['role_ids'] = implode(',', $role_ids);
                 $user['roles'] = $roles;
 
+                // Obtener datos específicos según tipo de usuario
+                $user_type = $user['user_type'] ?? null;
+
+                if ($user_type === 'doctor') {
+                    // Obtener datos del doctor
+                    $sql = "SELECT * FROM doctors WHERE user_id = ?";
+                    $stmt = $con->prepare($sql);
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $doctor_data = $result->fetch_assoc();
+                    $user['doctor_data'] = $doctor_data;
+                    $stmt->close();
+
+                } elseif ($user_type === 'patient') {
+                    // Obtener datos del paciente
+                    $sql = "SELECT * FROM patients WHERE user_id = ?";
+                    $stmt = $con->prepare($sql);
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $patient_data = $result->fetch_assoc();
+                    $user['patient_data'] = $patient_data;
+                    $stmt->close();
+
+                } elseif ($user_type === 'admin') {
+                    // Obtener datos del admin
+                    $sql = "SELECT * FROM admins WHERE user_id = ?";
+                    $stmt = $con->prepare($sql);
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $admin_data = $result->fetch_assoc();
+                    $user['admin_data'] = $admin_data;
+                    $stmt->close();
+                }
+
                 echo json_encode([
                     'success' => true,
                     'data' => $user

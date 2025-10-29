@@ -2,6 +2,7 @@
 session_start();
 error_reporting(0);
 include('include/config.php');
+include('../include/rbac-functions.php');
 
 ?>
 <!DOCTYPE html>
@@ -22,6 +23,145 @@ include('include/config.php');
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/plugins.css">
     <link rel="stylesheet" href="assets/css/themes/theme-1.css" id="skin_color" />
+    <style>
+        /* Mejoras visuales para el dashboard de doctores */
+        .dashboard-card {
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard-card.card-profile {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .dashboard-card.card-appointments {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+        }
+        
+        .dashboard-card .panel-body {
+            padding: 40px 20px;
+        }
+        
+        .dashboard-card .fa-stack {
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-card .fa-stack i {
+            color: white;
+        }
+        
+        .dashboard-card .fa-stack .fa-circle {
+            opacity: 1;
+        }
+        
+        .dashboard-card .icon-circle {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .dashboard-card .icon-circle i {
+            font-size: 45px;
+            color: inherit;
+        }
+        
+        .dashboard-card.card-profile .icon-circle i {
+            color: #11998e;
+        }
+        
+        .dashboard-card.card-appointments .icon-circle i {
+            color: #ee0979;
+        }
+        
+        .dashboard-card h2 {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard-card a {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 12px 30px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .dashboard-card a:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .mainTitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        #page-title {
+            margin-bottom: 40px;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+        }
+        
+        .container-fullw {
+            padding: 30px;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dashboard-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .dashboard-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        
+        .dashboard-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -47,30 +187,28 @@ include('include/config.php');
                     </section>
                     <div class="container-fluid container-fullw bg-white">
                         <div class="row">
-                            <div class="col-sm-4">
-                                <div class="panel panel-white no-radius text-center">
+                            <div class="col-sm-6">
+                                <div class="panel dashboard-card card-profile no-radius text-center">
                                     <div class="panel-body">
-                                        <span class="fa-stack fa-2x">
-                                            <i class="fa fa-square fa-stack-2x text-primary"></i>
-                                            <i class="fa fa-smile-o fa-stack-1x fa-inverse"></i>
-                                        </span>
+                                        <div class="icon-circle">
+                                            <i class="fa fa-user-md"></i>
+                                        </div>
                                         <h2 class="StepTitle">Mi Perfil</h2>
                                         <p class="links cl-effect-1">
-                                            <a href="edit-profile.php">Actualizar Perfil</a>
+                                            <a href="edit-profile.php"><i class="fa fa-edit"></i> Actualizar Perfil</a>
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-4">
-                                <div class="panel panel-white no-radius text-center">
+                            <div class="col-sm-6">
+                                <div class="panel dashboard-card card-appointments no-radius text-center">
                                     <div class="panel-body">
-                                        <span class="fa-stack fa-2x">
-                                            <i class="fa fa-square fa-stack-2x text-primary"></i>
-                                            <i class="fa fa-paperclip fa-stack-1x fa-inverse"></i>
-                                        </span>
+                                        <div class="icon-circle">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
                                         <h2 class="StepTitle">Mis Citas</h2>
                                         <p class="cl-effect-1">
-                                            <a href="appointment-history.php">Ver Historial de Citas</a>
+                                            <a href="appointment-history.php"><i class="fa fa-list"></i> Ver Historial</a>
                                         </p>
                                     </div>
                                 </div>

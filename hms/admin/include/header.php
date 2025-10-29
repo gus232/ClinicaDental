@@ -58,16 +58,19 @@
 									<i class="ti-angle-down"></i></i></span>
 								</a>
 								<ul class="dropdown-menu dropdown-dark">
-									
-								
+									<li>
+										<a href="edit-profile.php">
+											<i class="fa fa-user"></i> Mi Perfil
+										</a>
+									</li>
 									<li>
 										<a href="change-password.php">
-											Change Password
+											<i class="fa fa-lock"></i> Cambiar Contraseña
 										</a>
 									</li>
 									<li>
 										<a href="logout.php">
-											Log Out
+											<i class="fa fa-sign-out"></i> Cerrar Sesión
 										</a>
 									</li>
 								</ul>
