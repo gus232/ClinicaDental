@@ -16,8 +16,8 @@
  */
 
 session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+error_reporting(0);
+ini_set('display_errors', 0);
 
 require_once('include/config.php');
 require_once('include/checklogin.php');
@@ -468,6 +468,58 @@ $expiring_users = mysqli_query($con, $expiring_users_query);
             background-color: #e3f2fd;
             border-color: #2196f3;
             color: #1976d2;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #2196f3;
+            border-color: #2196f3;
+            color: #1976d2;
+        }
+        
+        /* Estilos para la ruedita de configuración */
+        .settings.panel.panel-default {
+            position: fixed !important;
+            right: 0 !important; /* pegado al borde derecho */
+            left: auto !important;
+            top: 120px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 38px !important; /* igual al botón */
+            z-index: 9999 !important;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+        /* Ocultar el texto 'Selector de Estilo' */
+        .settings .panel-heading { display: none !important; height: 0 !important; padding: 0 !important; margin: 0 !important; border: 0 !important; }
+        .settings button {
+            position: relative;
+            border-radius: 4px 0 0 4px; /* borde redondeado solo lado izquierdo */
+            padding: 8px 12px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-right: 0; /* que se funda con el borde derecho de la pantalla */
+            background: #fff;
+            box-shadow: none; /* sin sombra para que no parezca flotante */
+        }
+        .settings .panel-body {
+            display: none;
+            position: absolute;
+            right: 100%;
+            top: 0;
+            width: 250px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .settings.active .panel-body { 
+            display: block; 
         }
     </style>
 </head>
@@ -1146,6 +1198,8 @@ $expiring_users = mysqli_query($con, $expiring_users_query);
                 </div>
             </div>
         </div>
+        <?php include('include/footer.php');?>
+        <?php include('include/setting.php');?>
     </div>
 
     <!-- Scripts -->
@@ -1378,6 +1432,12 @@ $expiring_users = mysqli_query($con, $expiring_users_query);
         setTimeout(function() {
             $('.alert-dismissible').fadeOut('slow');
         }, 5000);
+        
+        // Inicializar componentes principales
+        jQuery(document).ready(function() {
+            Main.init();
+            FormElements.init();
+        });
     </script>
 </body>
 </html>

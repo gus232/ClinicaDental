@@ -716,6 +716,11 @@ $all_roles = $rbac->getAllRoles();
                                 <i class="fa fa-bar-chart"></i> Estadísticas
                             </a>
                         </li>
+                        <li role="presentation" class="<?php echo $activeTab == 'unlock' ? 'active' : ''; ?>">
+                            <a href="?tab=unlock">
+                                <i class="fa fa-unlock-alt"></i> Desbloquear Cuentas
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- ============================================ -->
@@ -953,92 +958,351 @@ $all_roles = $rbac->getAllRoles();
         <?php endif; // Fin del tab listado ?>
 
         <!-- ============================================ -->
-        <!-- TAB 2: LOGS DE ACTIVIDAD -->
+        <!-- TAB 2: LOGS DE ACTIVIDAD (MEJORADO CON SUB-TABS) -->
         <!-- ============================================ -->
         <?php if ($activeTab == 'logs' && $canViewActivityLogs): ?>
         <div class="container-fluid container-fullw bg-white">
             <div class="row">
                 <div class="col-md-12">
-                    <h4><i class="fa fa-list-alt"></i> Logs de Actividad de Usuarios</h4>
-                    <p class="text-muted">Historial de sesiones de usuarios, doctores y pacientes del sistema</p>
+                    <h4><i class="fa fa-list-alt"></i> Logs de Actividad del Sistema</h4>
+                    <p class="text-muted">Monitoreo completo de sesiones, eventos de seguridad y cambios de roles</p>
                     <hr>
 
                     <?php
-                    // Obtener logs de sesiones de usuarios y doctores
-                    $logs_sql = "SELECT ul.*, u.full_name, u.email, u.user_type
-                                FROM userlog ul
-                                LEFT JOIN users u ON ul.uid = u.id
-                                ORDER BY ul.loginTime DESC
+                    // Obtener sub-tab activo (por defecto: sesiones)
+                    $logsSubTab = isset($_GET['logs_subtab']) ? $_GET['logs_subtab'] : 'sessions';
+
+                    // ========== CONSULTAS PARA CADA SUB-TAB ==========
+
+                    // SUB-TAB 1: SESIONES DE USUARIO
+                    $sessions_sql = "SELECT ul.*, u.full_name, u.email, u.user_type
+                                    FROM user_logs ul
+                                    LEFT JOIN users u ON ul.user_id = u.id
+                                    ORDER BY ul.login_time DESC
+                                    LIMIT 100";
+                    $sessions_result = mysqli_query($con, $sessions_sql);
+
+                    // SUB-TAB 2: EVENTOS DE SEGURIDAD
+                    $security_sql = "SELECT sl.*, u.full_name, u.email, u.user_type
+                                    FROM security_logs sl
+                                    LEFT JOIN users u ON sl.user_id = u.id
+                                    ORDER BY sl.created_at DESC
+                                    LIMIT 100";
+                    $security_result = mysqli_query($con, $security_sql);
+
+                    // SUB-TAB 3: CAMBIOS DE ROLES
+                    $roles_sql = "SELECT arc.*,
+                                        u_affected.full_name as affected_user_name,
+                                        u_affected.email as affected_user_email,
+                                        u_performer.full_name as performer_name,
+                                        u_performer.email as performer_email,
+                                        r.role_name
+                                FROM audit_role_changes arc
+                                LEFT JOIN users u_affected ON arc.user_id = u_affected.id
+                                LEFT JOIN users u_performer ON arc.performed_by = u_performer.id
+                                LEFT JOIN roles r ON arc.role_id = r.id
+                                ORDER BY arc.performed_at DESC
                                 LIMIT 100";
-                    $logs_result = mysqli_query($con, $logs_sql);
+                    $roles_result = mysqli_query($con, $roles_sql);
                     ?>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="logsTable">
-                            <thead>
-                                <tr style="background: #00a8b3; color: white;">
-                                    <th>#</th>
-                                    <th>Usuario</th>
-                                    <th>Email</th>
-                                    <th>Tipo</th>
-                                    <th>IP</th>
-                                    <th>Fecha de Ingreso</th>
-                                    <th>Fecha de Salida</th>
-                                    <th>Duración</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $cnt = 1;
-                                while ($log = mysqli_fetch_assoc($logs_result)):
-                                    // Calcular duración de sesión
-                                    $login = strtotime($log['loginTime']);
-                                    $logout = $log['logout'] ? strtotime($log['logout']) : null;
-                                    $duration = $logout ? ($logout - $login) : null;
+                    <!-- SUB-TABS NAVIGATION -->
+                    <ul class="nav nav-pills" role="tablist" style="margin-bottom: 20px;">
+                        <li role="presentation" class="<?php echo $logsSubTab == 'sessions' ? 'active' : ''; ?>">
+                            <a href="?tab=logs&logs_subtab=sessions">
+                                <i class="fa fa-sign-in"></i> Sesiones de Usuario
+                                <span class="badge badge-primary"><?php echo mysqli_num_rows($sessions_result); ?></span>
+                            </a>
+                        </li>
+                        <li role="presentation" class="<?php echo $logsSubTab == 'security' ? 'active' : ''; ?>">
+                            <a href="?tab=logs&logs_subtab=security">
+                                <i class="fa fa-shield"></i> Eventos de Seguridad
+                                <span class="badge badge-warning"><?php echo mysqli_num_rows($security_result); ?></span>
+                            </a>
+                        </li>
+                        <li role="presentation" class="<?php echo $logsSubTab == 'roles' ? 'active' : ''; ?>">
+                            <a href="?tab=logs&logs_subtab=roles">
+                                <i class="fa fa-users"></i> Cambios de Roles
+                                <span class="badge badge-info"><?php echo mysqli_num_rows($roles_result); ?></span>
+                            </a>
+                        </li>
+                    </ul>
 
-                                    // Formato de duración
-                                    if ($duration) {
-                                        $hours = floor($duration / 3600);
-                                        $minutes = floor(($duration % 3600) / 60);
-                                        $duration_text = sprintf("%dh %dm", $hours, $minutes);
-                                    } else {
-                                        $duration_text = '<span class="label label-success">Activo</span>';
-                                    }
-                                ?>
-                                <tr>
-                                    <td><?php echo $cnt++; ?></td>
-                                    <td><?php echo htmlspecialchars($log['full_name'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($log['email'] ?? 'N/A'); ?></td>
-                                    <td>
-                                        <?php
-                                        $type = $log['user_type'] ?? 'usuario';
-                                        $badge_class = 'default';
-                                        if ($type == 'admin') $badge_class = 'danger';
-                                        elseif ($type == 'doctor') $badge_class = 'primary';
-                                        elseif ($type == 'patient') $badge_class = 'info';
-                                        echo '<span class="label label-' . $badge_class . '">' . ucfirst($type) . '</span>';
-                                        ?>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($log['userip']); ?></td>
-                                    <td><?php echo date('d/m/Y H:i', strtotime($log['loginTime'])); ?></td>
-                                    <td>
-                                        <?php
-                                        if ($log['logout']) {
-                                            echo date('d/m/Y H:i', strtotime($log['logout']));
+                    <!-- ========== SUB-TAB 1: SESIONES DE USUARIO ========== -->
+                    <?php if ($logsSubTab == 'sessions'): ?>
+                    <div class="subtab-content">
+                        <h5><i class="fa fa-sign-in"></i> Historial de Sesiones</h5>
+                        <p class="text-muted">Registro de inicio y cierre de sesión con información de dispositivos</p>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="sessionsTable">
+                                <thead>
+                                    <tr style="background: #00a8b3; color: white;">
+                                        <th>#</th>
+                                        <th>Usuario</th>
+                                        <th>Email</th>
+                                        <th>Tipo</th>
+                                        <th>Dispositivo</th>
+                                        <th>Navegador</th>
+                                        <th>IP</th>
+                                        <th>Login</th>
+                                        <th>Logout</th>
+                                        <th>Duración</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    mysqli_data_seek($sessions_result, 0); // Reset pointer
+                                    $cnt = 1;
+                                    while ($log = mysqli_fetch_assoc($sessions_result)):
+                                        // Formato de duración
+                                        if ($log['session_duration']) {
+                                            $hours = floor($log['session_duration'] / 3600);
+                                            $minutes = floor(($log['session_duration'] % 3600) / 60);
+                                            $duration_text = sprintf("%dh %dm", $hours, $minutes);
                                         } else {
-                                            echo '<span class="label label-success">En sesión</span>';
+                                            $duration_text = '-';
                                         }
-                                        ?>
-                                    </td>
-                                    <td><?php echo $duration_text; ?></td>
-                                </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $cnt++; ?></td>
+                                        <td><strong><?php echo htmlspecialchars($log['full_name'] ?? 'N/A'); ?></strong></td>
+                                        <td><?php echo htmlspecialchars($log['email'] ?? 'N/A'); ?></td>
+                                        <td>
+                                            <?php
+                                            $type = $log['user_type'] ?? 'usuario';
+                                            $badge_class = 'default';
+                                            if ($type == 'admin') $badge_class = 'danger';
+                                            elseif ($type == 'doctor') $badge_class = 'primary';
+                                            elseif ($type == 'patient') $badge_class = 'info';
+                                            echo '<span class="label label-' . $badge_class . '">' . ucfirst($type) . '</span>';
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            $device_icons = [
+                                                'desktop' => '<i class="fa fa-desktop"></i> Desktop',
+                                                'mobile' => '<i class="fa fa-mobile"></i> Móvil',
+                                                'tablet' => '<i class="fa fa-tablet"></i> Tablet',
+                                                'other' => '<i class="fa fa-question-circle"></i> Otro'
+                                            ];
+                                            echo $device_icons[$log['device_type']] ?? 'N/A';
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <small><?php echo htmlspecialchars($log['browser'] ?? 'N/A'); ?></small>
+                                        </td>
+                                        <td><code><?php echo htmlspecialchars($log['ip_address']); ?></code></td>
+                                        <td><small><?php echo date('d/m/Y H:i', strtotime($log['login_time'])); ?></small></td>
+                                        <td>
+                                            <small>
+                                            <?php
+                                            if ($log['logout_time']) {
+                                                echo date('d/m/Y H:i', strtotime($log['logout_time']));
+                                            } else {
+                                                echo '<em class="text-muted">-</em>';
+                                            }
+                                            ?>
+                                            </small>
+                                        </td>
+                                        <td><small><?php echo $duration_text; ?></small></td>
+                                        <td>
+                                            <?php if ($log['is_active']): ?>
+                                                <span class="label label-success">
+                                                    <i class="fa fa-circle"></i> Activa
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="label label-default">
+                                                    <i class="fa fa-circle-o"></i> Cerrada
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- ========== SUB-TAB 2: EVENTOS DE SEGURIDAD ========== -->
+                    <?php if ($logsSubTab == 'security'): ?>
+                    <div class="subtab-content">
+                        <h5><i class="fa fa-shield"></i> Eventos de Seguridad</h5>
+                        <p class="text-muted">Registro de eventos críticos y accesos no autorizados</p>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="securityTable">
+                                <thead>
+                                    <tr style="background: #f39c12; color: white;">
+                                        <th>#</th>
+                                        <th>Usuario</th>
+                                        <th>Tipo de Evento</th>
+                                        <th>Descripción</th>
+                                        <th>IP</th>
+                                        <th>Fecha/Hora</th>
+                                        <th>Detalles</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    mysqli_data_seek($security_result, 0);
+                                    $cnt = 1;
+                                    while ($event = mysqli_fetch_assoc($security_result)):
+                                        // Definir colores según tipo de evento
+                                        $event_badges = [
+                                            'unauthorized_access' => 'danger',
+                                            'permission_denied' => 'warning',
+                                            'account_unlocked' => 'success',
+                                            'attempts_reset' => 'info',
+                                            'forced_logout' => 'warning',
+                                            'account_locked' => 'danger'
+                                        ];
+                                        $badge_class = $event_badges[$event['event_type']] ?? 'default';
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $cnt++; ?></td>
+                                        <td>
+                                            <?php if ($event['full_name']): ?>
+                                                <strong><?php echo htmlspecialchars($event['full_name']); ?></strong>
+                                                <br><small class="text-muted"><?php echo htmlspecialchars($event['email']); ?></small>
+                                            <?php else: ?>
+                                                <em class="text-muted">No autenticado</em>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <span class="label label-<?php echo $badge_class; ?>">
+                                                <?php echo str_replace('_', ' ', ucwords($event['event_type'], '_')); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small><?php echo htmlspecialchars($event['event_description']); ?></small>
+                                        </td>
+                                        <td><code><?php echo htmlspecialchars($event['ip_address']); ?></code></td>
+                                        <td><small><?php echo date('d/m/Y H:i:s', strtotime($event['created_at'])); ?></small></td>
+                                        <td>
+                                            <?php if ($event['additional_data']): ?>
+                                                <button type="button" class="btn btn-xs btn-info"
+                                                        onclick="showEventDetails(<?php echo htmlspecialchars($event['additional_data']); ?>)">
+                                                    <i class="fa fa-eye"></i> Ver
+                                                </button>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- ========== SUB-TAB 3: CAMBIOS DE ROLES ========== -->
+                    <?php if ($logsSubTab == 'roles'): ?>
+                    <div class="subtab-content">
+                        <h5><i class="fa fa-users"></i> Auditoría de Cambios de Roles</h5>
+                        <p class="text-muted">Registro de asignación y revocación de roles</p>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="rolesTable">
+                                <thead>
+                                    <tr style="background: #3498db; color: white;">
+                                        <th>#</th>
+                                        <th>Usuario Afectado</th>
+                                        <th>Rol</th>
+                                        <th>Acción</th>
+                                        <th>Realizado Por</th>
+                                        <th>Fecha/Hora</th>
+                                        <th>IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    mysqli_data_seek($roles_result, 0);
+                                    $cnt = 1;
+                                    while ($change = mysqli_fetch_assoc($roles_result)):
+                                        // Definir colores según acción
+                                        $action_badges = [
+                                            'assigned' => 'success',
+                                            'revoked' => 'danger',
+                                            'role_updated' => 'primary',
+                                            'permission_changed' => 'warning'
+                                        ];
+                                        $badge_class = $action_badges[$change['action']] ?? 'default';
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $cnt++; ?></td>
+                                        <td>
+                                            <?php if ($change['affected_user_name']): ?>
+                                                <strong><?php echo htmlspecialchars($change['affected_user_name']); ?></strong>
+                                                <br><small class="text-muted"><?php echo htmlspecialchars($change['affected_user_email']); ?></small>
+                                            <?php else: ?>
+                                                <em class="text-muted">Usuario no especificado</em>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <span class="label label-primary">
+                                                <?php echo htmlspecialchars($change['role_name'] ?? 'N/A'); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="label label-<?php echo $badge_class; ?>">
+                                                <?php echo str_replace('_', ' ', ucwords($change['action'], '_')); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php if ($change['performer_name']): ?>
+                                                <strong><?php echo htmlspecialchars($change['performer_name']); ?></strong>
+                                            <?php else: ?>
+                                                <em class="text-muted">Sistema</em>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><small><?php echo date('d/m/Y H:i:s', strtotime($change['performed_at'])); ?></small></td>
+                                        <td><code><?php echo htmlspecialchars($change['ip_address'] ?? 'N/A'); ?></code></td>
+                                    </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para ver detalles de eventos de seguridad -->
+        <div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title"><i class="fa fa-info-circle"></i> Detalles del Evento</h4>
+                    </div>
+                    <div class="modal-body">
+                        <pre id="eventDetailsContent" style="background: #f4f4f4; padding: 15px; border-radius: 4px; max-height: 400px; overflow-y: auto;"></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <script>
+        function showEventDetails(jsonData) {
+            try {
+                var formatted = JSON.stringify(jsonData, null, 2);
+                document.getElementById('eventDetailsContent').textContent = formatted;
+                $('#eventDetailsModal').modal('show');
+            } catch (e) {
+                alert('Error al mostrar detalles: ' + e.message);
+            }
+        }
+        </script>
+
         <?php endif; // Fin del tab logs ?>
 
         <!-- ============================================ -->
@@ -1689,6 +1953,327 @@ $all_roles = $rbac->getAllRoles();
             </div>
         </div>
     </div>
+
+    <?php if ($activeTab == 'unlock'): ?>
+   <?php
+   // Panel Desbloqueo de cuentas
+   @include_once('../include/csrf-protection.php');
+   @include_once('../include/permission-check.php');
+   if (function_exists('requirePermission')) requirePermission('unlock_accounts');
+   $success_message = '';
+   $error_message = '';
+
+   // POLÍTICA DE BLOQUEO
+   $policy = [];
+   $policy_q = mysqli_query($con, "SELECT setting_name, setting_value FROM password_policy_config");
+   if ($policy_q) while ($p = mysqli_fetch_assoc($policy_q)) $policy[$p['setting_name']] = $p['setting_value'];
+   $max_failed_attempts = isset($policy['max_failed_attempts']) ? (int)$policy['max_failed_attempts'] : 3;
+   $lockout_duration_minutes = isset($policy['lockout_duration_minutes']) ? (int)$policy['lockout_duration_minutes'] : 30;
+   $progressive_enabled = isset($policy['progressive_lockout_enabled']) ? (int)$policy['progressive_lockout_enabled'] === 1 : false;
+
+   // ACCIONES DE FORMULARIO POST
+   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+     if (isset($_POST['unlock'])) {
+       if (function_exists('csrf_validate') && !csrf_validate($_POST['csrf_token'] ?? '')) {
+         $error_message = "Token CSRF inválido";
+       } else {
+         $user_id = intval($_POST['user_id']);
+         $st = mysqli_prepare($con, "SELECT status FROM users WHERE id = ?");
+         mysqli_stmt_bind_param($st, "i", $user_id);
+         mysqli_stmt_execute($st);
+         $res = mysqli_stmt_get_result($st);
+         $u = $res ? mysqli_fetch_assoc($res) : null;
+         mysqli_stmt_close($st);
+         if (!$u) {
+           $error_message = "Usuario no encontrado";
+         } elseif (isset($u['status']) && $u['status'] === 'blocked') {
+           $error_message = "La cuenta está en estado 'blocked' y requiere acción administrativa";
+         } else {
+           $unlock_sql = "UPDATE users SET failed_login_attempts = 0, account_locked_until = NULL WHERE id = ?";
+           $stmt = mysqli_prepare($con, $unlock_sql);
+           mysqli_stmt_bind_param($stmt, "i", $user_id);
+           if (mysqli_stmt_execute($stmt)) {
+             $success_message = "Cuenta desbloqueada exitosamente";
+             $admin_id = $_SESSION['id'] ?? null;
+             $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+             $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+             $desc = 'Admin desbloqueó cuenta de usuario';
+             $data = json_encode(['action'=> 'unlock', 'by'=> $admin_id, 'target_user'=> $user_id]);
+             $log_sql = "INSERT INTO security_logs (user_id, event_type, event_description, ip_address, user_agent, additional_data) VALUES (?,?,?,?,?,?)";
+             $log_stmt = mysqli_prepare($con, $log_sql);
+             mysqli_stmt_bind_param($log_stmt, "isssss", $admin_id, $etype = 'account_unlocked', $desc, $ip, $ua, $data);
+             mysqli_stmt_execute($log_stmt);
+             mysqli_stmt_close($log_stmt);
+           } else {
+             $error_message = "Error al desbloquear la cuenta";
+           }
+           mysqli_stmt_close($stmt);
+         }
+       }
+     } else if (isset($_POST['reset_counter'])) {
+       if (function_exists('csrf_validate') && !csrf_validate($_POST['csrf_token'] ?? '')) {
+         $error_message = "Token CSRF inválido";
+       } else {
+         $user_id = intval($_POST['user_id']);
+         $reset_sql = "UPDATE users SET failed_login_attempts = 0 WHERE id = ?";
+         $stmt = mysqli_prepare($con, $reset_sql);
+         mysqli_stmt_bind_param($stmt, "i", $user_id);
+         if (mysqli_stmt_execute($stmt)) {
+           $success_message = "Contador de intentos reiniciado exitosamente";
+           $admin_id = $_SESSION['id'] ?? null;
+           $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+           $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+           $desc = 'Admin reinició contador de intentos';
+           $data = json_encode(['action'=> 'reset_attempts', 'by'=> $admin_id, 'target_user'=> $user_id]);
+           $log_sql = "INSERT INTO security_logs (user_id, event_type, event_description, ip_address, user_agent, additional_data) VALUES (?,?,?,?,?,?)";
+           $log_stmt = mysqli_prepare($con, $log_sql);
+           mysqli_stmt_bind_param($log_stmt, "isssss", $admin_id, $etype = 'attempts_reset', $desc, $ip, $ua, $data);
+           mysqli_stmt_execute($log_stmt);
+           mysqli_stmt_close($log_stmt);
+         } else {
+           $error_message = "Error al reiniciar contador";
+         }
+         mysqli_stmt_close($stmt);
+       }
+     }
+   }
+
+   // CONSULTAS
+   $locked_accounts_sql = "SELECT u.id, u.email, u.full_name, u.user_type, u.failed_login_attempts, u.account_locked_until, u.status, u.last_login, u.last_login_ip, CASE WHEN u.account_locked_until > NOW() THEN 'BLOQUEADA' ELSE 'DESBLOQUEADA' END AS lock_status, TIMESTAMPDIFF(MINUTE, NOW(), u.account_locked_until) AS minutes_remaining FROM users u WHERE u.account_locked_until IS NOT NULL AND u.account_locked_until > NOW() ORDER BY u.account_locked_until DESC";
+   $locked_result = mysqli_query($con, $locked_accounts_sql);
+   $attempts_sql = "SELECT u.id, u.email, u.full_name, u.user_type, u.failed_login_attempts, u.last_login, u.last_login_ip FROM users u WHERE u.failed_login_attempts > 0 AND (u.account_locked_until IS NULL OR u.account_locked_until < NOW()) ORDER BY u.failed_login_attempts DESC";
+   $attempts_result = mysqli_query($con, $attempts_sql);
+   ?>
+   <div class="container-fluid container-fullw bg-white">
+      <?php if ($success_message): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fa fa-check-circle"></i> <?php echo $success_message; ?>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      <?php endif; ?>
+      <?php if ($error_message): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fa fa-exclamation-circle"></i> <?php echo $error_message; ?>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      <?php endif; ?>
+
+      <!-- SECCIÓN 1: CUENTAS BLOQUEADAS -->
+      <div class="row">
+          <div class="col-md-12">
+              <h4 class="over-title margin-bottom-15">
+                  <i class="fa fa-ban text-danger"></i> Cuentas Bloqueadas
+                  <span class="badge badge-danger"><?php echo mysqli_num_rows($locked_result); ?></span>
+              </h4>
+
+              <?php if (mysqli_num_rows($locked_result) == 0): ?>
+                  <div class="alert alert-info">
+                      <i class="fa fa-info-circle"></i> No hay cuentas bloqueadas actualmente.
+                  </div>
+              <?php else: ?>
+                  <div class="table-responsive">
+                      <table class="table table-hover table-striped" id="locked-table">
+                          <thead>
+                              <tr>
+                                  <th>ID</th>
+                                  <th>Usuario</th>
+                                  <th>Email</th>
+                                  <th>Tipo</th>
+                                  <th>Intentos</th>
+                                  <th>Estado</th>
+                                  <th>Bloqueado Hasta</th>
+                                  <th>Tiempo Restante</th>
+                                  <th>Última IP</th>
+                                  <th>Acciones</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <?php while ($row = mysqli_fetch_assoc($locked_result)): ?>
+                                  <tr>
+                                      <td><?php echo $row['id']; ?></td>
+                                      <td>
+                                          <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
+                                      </td>
+                                      <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                      <td>
+                                          <?php
+                                          $badge_class = [
+                                              'patient' => 'info',
+                                              'doctor' => 'primary',
+                                              'admin' => 'danger'
+                                          ];
+                                          $badge = $badge_class[$row['user_type']] ?? 'secondary';
+                                          ?>
+                                          <span class="badge badge-<?php echo $badge; ?>">
+                                              <?php echo ucfirst($row['user_type']); ?>
+                                          </span>
+                                      </td>
+                                      <td>
+                                          <span class="badge badge-warning">
+                                              <?php echo $row['failed_login_attempts']; ?> intentos
+                                          </span>
+                                      </td>
+                                      <td>
+                                          <?php if ($row['lock_status'] == 'BLOQUEADA'): ?>
+                                              <span class="badge badge-danger">
+                                                  <i class="fa fa-lock"></i> BLOQUEADA
+                                              </span>
+                                          <?php else: ?>
+                                              <span class="badge badge-success">
+                                                  <i class="fa fa-unlock"></i> DESBLOQUEADA
+                                              </span>
+                                          <?php endif; ?>
+                                      </td>
+                                      <td>
+                                          <?php echo date('d/m/Y H:i', strtotime($row['account_locked_until'])); ?>
+                                      </td>
+                                      <td>
+                                          <?php
+                                          if ($row['minutes_remaining'] > 0) {
+                                              echo "<strong class='text-danger'>{$row['minutes_remaining']} min</strong>";
+                                          } else {
+                                              echo "<em class='text-muted'>Expirado</em>";
+                                          }
+                                          ?>
+                                      </td>
+                                      <td>
+                                          <code><?php echo htmlspecialchars($row['last_login_ip'] ?? 'N/A'); ?></code>
+                                      </td>
+                                      <td>
+                                          <?php if ($row['lock_status'] == 'BLOQUEADA' && $row['status'] !== 'blocked'): ?>
+                                              <form method="post" style="display: inline;">
+                                                  <?php if (function_exists('csrf_token')): ?>
+                                                  <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                                  <?php endif; ?>
+                                                  <input type="hidden" name="user_id" value="<?php echo $row['id']; ?>">
+                                                  <button type="submit" name="unlock" class="btn btn-success btn-sm" onclick="return confirm('¿Está seguro de desbloquear esta cuenta?')">
+                                                      <i class="fa fa-unlock"></i> Desbloquear
+                                                  </button>
+                                              </form>
+                                          <?php elseif ($row['status'] === 'blocked'): ?>
+                                              <span class="text-danger"><em>Estado: blocked (requiere acción administrativa)</em></span>
+                                          <?php else: ?>
+                                              <span class="text-muted"><em>Ya desbloqueada</em></span>
+                                          <?php endif; ?>
+                                      </td>
+                                  </tr>
+                              <?php endwhile; ?>
+                          </tbody>
+                      </table>
+                  </div>
+              <?php endif; ?>
+          </div>
+      </div>
+
+      <hr class="my-5">
+
+      <!-- SECCIÓN 2: CUENTAS CON INTENTOS FALLIDOS -->
+      <div class="row">
+          <div class="col-md-12">
+              <h4 class="over-title margin-bottom-15">
+                  <i class="fa fa-exclamation-triangle text-warning"></i> Cuentas con Intentos Fallidos
+                  <span class="badge badge-warning"><?php echo mysqli_num_rows($attempts_result); ?></span>
+              </h4>
+
+              <?php if (mysqli_num_rows($attempts_result) == 0): ?>
+                  <div class="alert alert-success">
+                      <i class="fa fa-check-circle"></i> No hay cuentas con intentos fallidos.
+                  </div>
+              <?php else: ?>
+                  <div class="table-responsive">
+                      <table class="table table-hover table-striped" id="attempts-table">
+                          <thead>
+                              <tr>
+                                  <th>ID</th>
+                                  <th>Usuario</th>
+                                  <th>Email</th>
+                                  <th>Tipo</th>
+                                  <th>Intentos Fallidos</th>
+                                  <th>Último Login</th>
+                                  <th>Última IP</th>
+                                  <th>Acciones</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <?php while ($row = mysqli_fetch_assoc($attempts_result)): ?>
+                                  <tr>
+                                      <td><?php echo $row['id']; ?></td>
+                                      <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+                                      <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                      <td>
+                                          <?php
+                                          $badge_class = [
+                                              'patient' => 'info',
+                                              'doctor' => 'primary',
+                                              'admin' => 'danger'
+                                          ];
+                                          $badge = $badge_class[$row['user_type']] ?? 'secondary';
+                                          ?>
+                                          <span class="badge badge-<?php echo $badge; ?>">
+                                              <?php echo ucfirst($row['user_type']); ?>
+                                          </span>
+                                      </td>
+                                      <td>
+                                          <?php
+                                          $attempts_class = $row['failed_login_attempts'] >= 2 ? 'danger' : 'warning';
+                                          ?>
+                                          <span class="badge badge-<?php echo $attempts_class; ?>">
+                                              <?php echo $row['failed_login_attempts']; ?> intentos
+                                          </span>
+                                      </td>
+                                      <td>
+                                          <?php
+                                          if ($row['last_login']) {
+                                              echo date('d/m/Y H:i', strtotime($row['last_login']));
+                                          } else {
+                                              echo '<em class="text-muted">Nunca</em>';
+                                          }
+                                          ?>
+                                      </td>
+                                      <td>
+                                          <code><?php echo htmlspecialchars($row['last_login_ip'] ?? 'N/A'); ?></code>
+                                      </td>
+                                      <td>
+                                          <form method="post" style="display: inline;">
+                                              <?php if (function_exists('csrf_token')): ?>
+                                              <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                              <?php endif; ?>
+                                              <input type="hidden" name="user_id" value="<?php echo $row['id']; ?>">
+                                              <button type="submit" name="reset_counter" class="btn btn-warning btn-sm" onclick="return confirm('¿Reiniciar contador de intentos?')">
+                                                  <i class="fa fa-refresh"></i> Reiniciar
+                                              </button>
+                                          </form>
+                                      </td>
+                                  </tr>
+                              <?php endwhile; ?>
+                          </tbody>
+                      </table>
+                  </div>
+              <?php endif; ?>
+          </div>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="row mt-5">
+          <div class="col-md-12">
+              <div class="alert alert-info">
+                  <h5><i class="fa fa-info-circle"></i> Información</h5>
+                  <ul class="mb-0">
+                      <li>Las cuentas se bloquean automáticamente después de <?php echo (int)$max_failed_attempts; ?> intentos fallidos de login</li>
+                      <li>Duración de bloqueo por defecto: <?php echo (int)$lockout_duration_minutes; ?> minutos<?php echo $progressive_enabled ? ' (bloqueo progresivo habilitado)' : ''; ?></li>
+                      <li>Puedes desbloquear cuentas manualmente desde esta página</li>
+                      <li>Los contadores se reinician automáticamente al hacer login exitoso</li>
+                  </ul>
+              </div>
+          </div>
+      </div>
+
+   </div>
+   <?php endif; ?>
 
     <!-- Scripts -->
     <?php echo getEmailConfigForJS(); ?>

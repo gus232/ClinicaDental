@@ -3,7 +3,7 @@ session_start();
 error_reporting(1);
 include('include/config.php');
 include('include/checklogin.php');
-include('include/rbac-functions.php');
+include('../include/rbac-functions.php');
 check_login();
 
 $user_id = $_SESSION['id'];

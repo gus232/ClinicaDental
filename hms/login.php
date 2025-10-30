@@ -5,6 +5,7 @@ error_reporting(0);
 include("include/config.php");
 include("include/rbac-functions.php");
 include("include/recaptcha-config.php");
+require_once("include/UserActivityLogger.php");
 
 // Variables para mensajes
 $error_message = '';
@@ -254,6 +255,10 @@ if (isset($_POST['submit'])) {
 
                 // Registrar login exitoso
                 logLoginAttempt($con, $email, $user['id'], 'success', $ip_address, $user_agent);
+
+                // Registrar sesión en user_logs
+                $logger = new UserActivityLogger($con);
+                $logger->logLogin($user['id'], session_id(), $ip_address, $user_agent);
 
                 // Redirigir según tipo de usuario
                 switch ($user['user_type']) {

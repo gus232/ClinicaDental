@@ -10,10 +10,15 @@
  * ============================================================================
  */
 
+// Incluir funciones RBAC si no están ya incluidas
+if (!function_exists('hasPermission')) {
+    include_once(__DIR__ . '/../../include/rbac-functions.php');
+}
+
 // Verificar permisos para cada opción del menú
-$canViewAppointments = hasPermission('view_appointments');
-$canCreatePatient = hasPermission('create_patient');
-$canViewPatients = hasPermission('view_patients');
+$canViewAppointments = function_exists('hasPermission') ? hasPermission('view_appointments') : true;
+$canCreatePatient = function_exists('hasPermission') ? hasPermission('create_patient') : true;
+$canViewPatients = function_exists('hasPermission') ? hasPermission('view_patients') : true;
 ?>
 
 <style>

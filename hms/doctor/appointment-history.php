@@ -1,8 +1,10 @@
 <?php
 session_start();
-error_reporting(0);
+error_reporting(1);
 include('include/config.php');
+include('include/checklogin.php');
 include('../include/rbac-functions.php');
+check_login();
 
 if(isset($_GET['cancel']))
 {
@@ -47,6 +49,35 @@ if(isset($_GET['cancel']))
             overflow: hidden;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
+        
+        /* Ajuste del panel de configuración: cuadrado pegado arriba a la derecha */
+        .settings.panel.panel-default {
+            position: fixed;
+            right: 0;
+            top: 120px;
+            z-index: 9999;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        .settings button {
+            position: relative;
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        .settings .panel-body {
+            display: none;
+            position: absolute;
+            right: 100%;
+            top: 0;
+            width: 250px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .settings.active .panel-body { display: block; }
         
         .table thead {
             background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
@@ -124,15 +155,12 @@ if(isset($_GET['cancel']))
     </style>
 </head>
 <body>
-    <div id="app">        
-        <?php include('include/sidebar.php');?>
-        <div class="app-content">
-                
-
-                    <?php include('include/header.php');?>
-                <!-- end: TOP NAVBAR -->
-                <div class="main-content" >
-                    <div class="wrap-content container" id="container">
+<div id="app">		
+<?php include('include/sidebar.php');?>
+<div class="app-content">
+<?php include('include/header.php');?>
+<div class="main-content">
+<div class="wrap-content container" id="container">
                         <!-- start: PAGE TITLE -->
                         <section id="page-title">
                             <div class="row">
@@ -175,7 +203,11 @@ if(isset($_GET['cancel']))
                                         </thead>
                                         <tbody>
 <?php
-$sql=mysqli_query($con,"select users.fullName as fname,appointment.*  from appointment join users on users.id=appointment.userId where appointment.doctorId='".$_SESSION['id']."'");
+$sql=mysqli_query($con,"select users.full_name as fname,appointment.*  from appointment join users on users.id=appointment.userId where appointment.doctorId='".$_SESSION['id']."'");
+if (!$sql) {
+    echo "Error en la consulta: " . mysqli_error($con);
+    exit;
+}
 $cnt=1;
 while($row=mysqli_fetch_array($sql))
 {
@@ -236,48 +268,33 @@ $cnt=$cnt+1;
                         
                         <!-- end: BASIC EXAMPLE -->
                         <!-- end: SELECT BOXES -->
-                        
-                    </div>
                 </div>
-            </div>
-            <!-- start: FOOTER -->
-    <?php include('include/footer.php');?>
-            <!-- end: FOOTER -->
-        
-            <!-- start: SETTINGS -->
-    <?php include('include/setting.php');?>
-            
-            <!-- end: SETTINGS -->
-        </div>
-        <!-- start: MAIN JAVASCRIPTS -->
-        <script src="vendor/jquery/jquery.min.js"></script>
-        <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-        <script src="vendor/modernizr/modernizr.js"></script>
-        <script src="vendor/jquery-cookie/jquery.cookie.js"></script>
-        <script src="vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-        <script src="vendor/switchery/switchery.min.js"></script>
-        <!-- end: MAIN JAVASCRIPTS -->
-        <!-- start: JAVASCRIPTS REQUIRED FOR THIS PAGE ONLY -->
-        <script src="vendor/maskedinput/jquery.maskedinput.min.js"></script>
-        <script src="vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
-        <script src="vendor/autosize/autosize.min.js"></script>
-        <script src="vendor/selectFx/classie.js"></script>
-        <script src="vendor/selectFx/selectFx.js"></script>
-        <script src="vendor/select2/select2.min.js"></script>
-        <script src="vendor/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-        <script src="vendor/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>
-        <!-- end: JAVASCRIPTS REQUIRED FOR THIS PAGE ONLY -->
-        <!-- start: CLIP-TWO JAVASCRIPTS -->
-        <script src="assets/js/main.js"></script>
-        <!-- start: JavaScript Event Handlers for this page -->
-        <script src="assets/js/form-elements.js"></script>
-        <script>
-            jQuery(document).ready(function() {
-                Main.init();
-                FormElements.init();
-            });
-        </script>
-        <!-- end: JavaScript Event Handlers for this page -->
-        <!-- end: CLIP-TWO JAVASCRIPTS -->
+</div>
+</div>
+<?php include('include/footer.php');?>
+<?php include('include/setting.php');?>
+</div>
+<script src="vendor/jquery/jquery.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="vendor/modernizr/modernizr.js"></script>
+<script src="vendor/jquery-cookie/jquery.cookie.js"></script>
+<script src="vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+<script src="vendor/switchery/switchery.min.js"></script>
+<script src="vendor/maskedinput/jquery.maskedinput.min.js"></script>
+<script src="vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+<script src="vendor/autosize/autosize.min.js"></script>
+<script src="vendor/selectFx/classie.js"></script>
+<script src="vendor/selectFx/selectFx.js"></script>
+<script src="vendor/select2/select2.min.js"></script>
+<script src="vendor/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+<script src="vendor/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/form-elements.js"></script>
+<script>
+    jQuery(document).ready(function() {
+        Main.init();
+        FormElements.init();
+    });
+</script>
     </body>
 </html>

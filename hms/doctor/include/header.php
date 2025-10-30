@@ -219,11 +219,14 @@
 									<img src="assets/images/images.jpg"> <span class="username">
 
 
-									<?php $query=mysqli_query($con,"select doctorName from doctors where id='".$_SESSION['id']."'");
-while($row=mysqli_fetch_array($query))
-{
-	echo $row['doctorName'];
-}
+									<?php 
+									// Obtener el nombre del doctor desde la tabla users
+									$query=mysqli_query($con,"select full_name from users where id='".$_SESSION['id']."'");
+									if($query && $row=mysqli_fetch_array($query)) {
+										echo htmlspecialchars($row['full_name']);
+									} else {
+										echo htmlspecialchars($_SESSION['name'] ?? 'Doctor');
+									}
 									?> <i class="ti-angle-down"></i></i></span>
 								</a>
 								<ul class="dropdown-menu dropdown-dark">

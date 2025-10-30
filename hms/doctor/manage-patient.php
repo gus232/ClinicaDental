@@ -1,8 +1,26 @@
 <?php
 session_start();
-error_reporting(0);
-include('include/config.php');
-include('../include/rbac-functions.php');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Debug paso a paso
+echo "<!-- DEBUG: Iniciando script -->";
+try {
+    include('include/config.php');
+    echo "<!-- DEBUG: Config OK -->";
+    
+    include('include/checklogin.php');
+    echo "<!-- DEBUG: Checklogin OK -->";
+    
+    include('../include/rbac-functions.php');
+    echo "<!-- DEBUG: RBAC OK -->";
+    
+    check_login();
+    echo "<!-- DEBUG: Login verificado -->";
+    
+} catch (Exception $e) {
+    die("ERROR CRÍTICO: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -47,6 +65,35 @@ include('../include/rbac-functions.php');
             overflow: hidden;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
+        
+        /* Ajuste del panel de configuración: cuadrado pegado arriba a la derecha */
+        .settings.panel.panel-default {
+            position: fixed;
+            right: 0;
+            top: 120px;
+            z-index: 9999;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        .settings button {
+            position: relative;
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        .settings .panel-body {
+            display: none;
+            position: absolute;
+            right: 100%;
+            top: 0;
+            width: 250px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .settings.active .panel-body { display: block; }
         
         .table thead {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
@@ -97,7 +144,7 @@ include('../include/rbac-functions.php');
     </style>
 </head>
 <body>
-    <div id="app">        
+<div id="app">		
 <?php include('include/sidebar.php');?>
 <div class="app-content">
 <?php include('include/header.php');?>
@@ -138,29 +185,73 @@ include('../include/rbac-functions.php');
 </thead>
 <tbody>
 <?php
-$docid=$_SESSION['id'];
-$sql=mysqli_query($con,"select * from tblpatient where Docid='$docid' ");
-$cnt=1;
-while($row=mysqli_fetch_array($sql))
-{
+echo "<!-- DEBUG: Iniciando consulta SQL -->";
+$docid = $_SESSION['id'];
+echo "<!-- DEBUG: Doctor ID = $docid -->";
+
+// Consulta súper simple para evitar errores
+$sql = false;
+$patients = array();
+
+// Intentar consulta básica
+try {
+    echo "<!-- DEBUG: Probando consulta básica -->";
+    $query = "SELECT id, fullName FROM users LIMIT 5";
+    $test = mysqli_query($con, $query);
+    if ($test) {
+        echo "<!-- DEBUG: Consulta básica OK -->";
+        // Si funciona, intentar la consulta real
+        $real_query = "SELECT DISTINCT u.id, u.fullName, u.address, u.gender 
+                       FROM users u 
+                       WHERE u.id IN (SELECT userId FROM appointment WHERE doctorId = '$docid')";
+        $sql = mysqli_query($con, $real_query);
+        if (!$sql) {
+            echo "<!-- DEBUG: Error en consulta real: " . mysqli_error($con) . " -->";
+        } else {
+            echo "<!-- DEBUG: Consulta real OK -->";
+        }
+    } else {
+        echo "<!-- DEBUG: Error en consulta básica: " . mysqli_error($con) . " -->";
+    }
+} catch (Exception $e) {
+    echo "<!-- DEBUG: Excepción en SQL: " . $e->getMessage() . " -->";
+}
+echo "<!-- DEBUG: Mostrando resultados -->";
+if ($sql && mysqli_num_rows($sql) > 0) {
+    $cnt = 1;
+    while($row = mysqli_fetch_array($sql)) {
+        echo "<!-- DEBUG: Procesando fila $cnt -->";
 ?>
 <tr>
 <td class="center"><?php echo $cnt;?>.</td>
-<td class="hidden-xs"><?php echo $row['PatientName'];?></td>
-<td><?php echo $row['PatientContno'];?></td>
-<td><?php echo $row['PatientGender'];?></td>
-<td><?php echo $row['CreationDate'];?></td>
-<td><?php echo $row['UpdationDate'];?>
-</td>
+<td class="hidden-xs"><?php echo isset($row['fullName']) ? $row['fullName'] : 'Sin nombre';?></td>
+<td><?php echo isset($row['address']) ? $row['address'] : 'No disponible';?></td>
+<td><?php echo isset($row['gender']) ? $row['gender'] : 'No especificado';?></td>
+<td>Fecha creación</td>
+<td>Fecha actualización</td>
 <td>
-
-<a href="edit-patient.php?editid=<?php echo $row['ID'];?>"><i class="fa fa-edit"></i></a> || <a href="view-patient.php?viewid=<?php echo $row['ID'];?>"><i class="fa fa-eye"></i></a>
-
+<a href="#"><i class="fa fa-edit"></i></a> || 
+<a href="#"><i class="fa fa-eye"></i></a>
 </td>
 </tr>
 <?php 
-$cnt=$cnt+1;
- }?>
+        $cnt++;
+    }
+} else {
+    echo "<!-- DEBUG: No hay resultados o error en SQL -->";
+?>
+<tr>
+<td colspan="7" class="text-center">
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i> No hay pacientes registrados para este doctor.
+        <br><small>Doctor ID: <?php echo $docid; ?></small>
+    </div>
+</td>
+</tr>
+<?php 
+}
+echo "<!-- DEBUG: Tabla completada -->";
+?>
 </tbody>
 </table>
 </div>
@@ -171,44 +262,30 @@ $cnt=$cnt+1;
 </div>
 </div>
 </div>
-            <!-- start: PIE DE PÁGINA -->
-    <?php include('include/footer.php');?>
-            <!-- end: PIE DE PÁGINA -->
-        
-            <!-- start: AJUSTES -->
-    <?php include('include/setting.php');?>
-            
-            <!-- end: AJUSTES -->
-        </div>
-        <!-- start: PRINCIPALES JAVASCRIPTS -->
-        <script src="vendor/jquery/jquery.min.js"></script>
-        <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-        <script src="vendor/modernizr/modernizr.js"></script>
-        <script src="vendor/jquery-cookie/jquery.cookie.js"></script>
-        <script src="vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-        <script src="vendor/switchery/switchery.min.js"></script>
-        <!-- end: PRINCIPALES JAVASCRIPTS -->
-        <!-- start: JAVASCRIPTS REQUERIDOS PARA ESTA PÁGINA -->
-        <script src="vendor/maskedinput/jquery.maskedinput.min.js"></script>
-        <script src="vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
-        <script src="vendor/autosize/autosize.min.js"></script>
-        <script src="vendor/selectFx/classie.js"></script>
-        <script src="vendor/selectFx/selectFx.js"></script>
-        <script src="vendor/select2/select2.min.js"></script>
-        <script src="vendor/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-        <script src="vendor/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>
-        <!-- end: JAVASCRIPTS REQUERIDOS PARA ESTA PÁGINA -->
-        <!-- start: CLIP-TWO JAVASCRIPTS -->
-        <script src="assets/js/main.js"></script>
-        <!-- start: Manejadores de Eventos JavaScript para esta página -->
-        <script src="assets/js/form-elements.js"></script>
-        <script>
-            jQuery(document).ready(function() {
-                Main.init();
-                FormElements.init();
-            });
-        </script>
-        <!-- end: Manejadores de Eventos JavaScript para esta página -->
-        <!-- end: CLIP-TWO JAVASCRIPTS -->
+<?php include('include/footer.php');?>
+<?php include('include/setting.php');?>
+</div>
+<script src="vendor/jquery/jquery.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="vendor/modernizr/modernizr.js"></script>
+<script src="vendor/jquery-cookie/jquery.cookie.js"></script>
+<script src="vendor/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+<script src="vendor/switchery/switchery.min.js"></script>
+<script src="vendor/maskedinput/jquery.maskedinput.min.js"></script>
+<script src="vendor/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+<script src="vendor/autosize/autosize.min.js"></script>
+<script src="vendor/selectFx/classie.js"></script>
+<script src="vendor/selectFx/selectFx.js"></script>
+<script src="vendor/select2/select2.min.js"></script>
+<script src="vendor/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+<script src="vendor/bootstrap-timepicker/bootstrap-timepicker.min.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/form-elements.js"></script>
+<script>
+    jQuery(document).ready(function() {
+        Main.init();
+        FormElements.init();
+    });
+</script>
     </body>
 </html>
