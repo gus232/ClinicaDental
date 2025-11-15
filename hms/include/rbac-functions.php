@@ -365,10 +365,16 @@ class RBAC {
      * OBTENER TODOS LOS ROLES DISPONIBLES
      * ========================================================================
      */
-    public function getAllRoles() {
+    public function getAllRoles($include_inactive = true) {
         $roles = [];
 
-        $query = "SELECT * FROM roles WHERE status = 'active' ORDER BY priority ASC";
+        // Incluir roles activos e inactivos para permitir visualización completa
+        if ($include_inactive) {
+            $query = "SELECT * FROM roles ORDER BY priority ASC, status DESC";
+        } else {
+            $query = "SELECT * FROM roles WHERE status = 'active' ORDER BY priority ASC";
+        }
+
         $result = mysqli_query($this->con, $query);
 
         while ($row = mysqli_fetch_assoc($result)) {

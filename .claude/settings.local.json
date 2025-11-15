@@ -6,7 +6,8 @@
       "Bash(mysql:*)",
       "Bash(php:*)",
       "Bash(/c/xampp/php/php.exe:*)",
-      "Bash(if not exist \"c:\\xampp\\htdocs\\hospital\\hms\\admin\\api\" mkdir \"c:\\xampp\\htdocs\\hospital\\hms\\admin\\api\")"
+      "Bash(if not exist \"c:\\xampp\\htdocs\\hospital\\hms\\admin\\api\" mkdir \"c:\\xampp\\htdocs\\hospital\\hms\\admin\\api\")",
+      "Bash(c:/xampp/mysql/bin/mysql -u root -e \"USE hms; SHOW TABLES;\")"
     ],
     "deny": [],
     "ask": []

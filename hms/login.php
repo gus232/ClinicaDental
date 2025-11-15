@@ -258,7 +258,13 @@ if (isset($_POST['submit'])) {
 
                 // Registrar sesión en user_logs
                 $logger = new UserActivityLogger($con);
-                $logger->logLogin($user['id'], session_id(), $ip_address, $user_agent);
+                $logResult = $logger->logLogin($user['id'], session_id(), $ip_address, $user_agent);
+
+                // Inicializar SessionManager para control de timeouts
+                require_once('include/SessionManager.php');
+                $sessionManager = new SessionManager($con);
+                $session_log_id = $logResult['success'] ? $logResult['log_id'] : null;
+                $sessionManager->initializeSession($user['id'], $session_log_id);
 
                 // Redirigir según tipo de usuario
                 switch ($user['user_type']) {

@@ -88,3 +88,19 @@
 					
 					<!-- end: NAVBAR COLLAPSE -->
 				</header>
+
+<!-- Session Timeout Handler -->
+<script src="../assets/js/session-timeout-handler.js"></script>
+<script>
+<?php
+// Cargar configuraciones de sesión
+require_once(__DIR__ . '/../../include/SessionManager.php');
+$sessionSettings = SessionManager::getSettings($con);
+?>
+// Inicializar manejador de timeout de sesión
+if (typeof initSessionTimeout === 'function') {
+    var sessionTimeout = <?php echo $sessionSettings['timeout_seconds']; ?>;
+    var warningTime = <?php echo $sessionSettings['warning_seconds']; ?>;
+    initSessionTimeout(sessionTimeout, warningTime);
+}
+</script>

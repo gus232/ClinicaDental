@@ -1,9 +1,10 @@
 <?php
 session_start();
-error_reporting(0);
+error_reporting(1);
 include('include/config.php');
 include('include/checklogin.php');
 include('../include/rbac-functions.php');
+require_once('../include/SessionManager.php');
 
 // Verificar acceso administrativo
 check_admin_access();
@@ -14,16 +15,67 @@ if (!hasPermission('manage_security_settings')) {
     exit();
 }
 
-// Valores por defecto (deberían venir de una tabla de configuración)
-$session_timeout = 1800; // 30 minutos
-$max_login_attempts = 5;
-$lockout_duration = 900; // 15 minutos
-$password_expiry_days = 90;
+// Inicializar SessionManager
+$sessionManager = new SessionManager($con);
+
+// Cargar configuración actual
+$settings = SessionManager::getSettings($con);
 
 // Procesar formulario
+$success_msg = '';
+$error_msg = '';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_security'])) {
-    // Aquí iría la lógica para guardar en base de datos
-    $success_msg = "Configuración de seguridad actualizada exitosamente";
+    // Validar y limpiar datos
+    $session_timeout = filter_input(INPUT_POST, 'session_timeout', FILTER_VALIDATE_INT, 
+        ['options' => ['min_range' => 5, 'max_range' => 120]]);
+    $session_max_duration = filter_input(INPUT_POST, 'session_max_duration', FILTER_VALIDATE_INT, 
+        ['options' => ['min_range' => 1, 'max_range' => 24]]);
+    $warning_minutes = filter_input(INPUT_POST, 'warning_minutes', FILTER_VALIDATE_INT, 
+        ['options' => ['min_range' => 1, 'max_range' => 5]]);
+    $remember_me = isset($_POST['remember_me']) ? 1 : 0;
+    $remember_days = filter_input(INPUT_POST, 'remember_days', FILTER_VALIDATE_INT, 
+        ['options' => ['min_range' => 1, 'max_range' => 90]]);
+
+    if ($session_timeout && $session_max_duration && $warning_minutes && $remember_days) {
+        // Actualizar configuración en la base de datos
+        $update_sql = "
+            INSERT INTO system_settings (setting_key, setting_value, setting_category, description) 
+            VALUES 
+            ('session_timeout_minutes', ?, 'security', 'Tiempo de inactividad en minutos antes de cerrar sesión'),
+            ('session_max_duration_hours', ?, 'security', 'Duración máxima de sesión en horas'),
+            ('session_warning_minutes', ?, 'security', 'Minutos antes de mostrar advertencia de expiración'),
+            ('remember_me_enabled', ?, 'security', 'Habilitar función Recordarme (1=si, 0=no)'),
+            ('remember_me_duration_days', ?, 'security', 'Duración de la cookie Recordarme en días')
+            ON DUPLICATE KEY UPDATE 
+                setting_value = VALUES(setting_value),
+                updated_at = NOW(),
+                updated_by = ?
+        ";
+        
+        $stmt = $con->prepare($update_sql);
+        $admin_id = $_SESSION['id'];
+        $stmt->bind_param('iiiiii', 
+            $session_timeout, 
+            $session_max_duration, 
+            $warning_minutes,
+            $remember_me,
+            $remember_days,
+            $admin_id
+        );
+        
+        if ($stmt->execute()) {
+            $success_msg = "Configuración de seguridad actualizada exitosamente";
+            // Actualizar configuración en memoria (crear nueva instancia para forzar recarga)
+            $sessionManager = new SessionManager($con);
+            $settings = SessionManager::getSettings($con);
+        } else {
+            $error_msg = "Error al actualizar la configuración: " . $stmt->error;
+        }
+        $stmt->close();
+    } else {
+        $error_msg = "Por favor ingrese valores válidos en todos los campos";
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -76,12 +128,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_security'])) {
                     <?php endif; ?>
 
                     <!-- Contenido Principal -->
+                    <?php if ($success_msg): ?>
+                    <div class="alert alert-success alert-dismissible fade in">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <i class="fa fa-check"></i> <?php echo $success_msg; ?>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($error_msg): ?>
+                    <div class="alert alert-danger alert-dismissible fade in">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <i class="fa fa-exclamation-triangle"></i> <?php echo $error_msg; ?>
+                    </div>
+                    <?php endif; ?>
+                    
                     <div class="container-fluid container-fullw bg-white">
                         <div class="row">
                             <div class="col-md-12">
-                                <form method="POST" action="">
+                                <form method="POST" action="" class="form-horizontal">
+                                    <input type="hidden" name="update_security" value="1">
 
-                                    <!-- Panel 1: Sesiones -->
+                                    <!-- Panel 1: Configuración de Sesiones -->
                                     <div class="panel panel-white">
                                         <div class="panel-heading" style="background: #00a8b3; color: white;">
                                             <h4 class="panel-title">
@@ -89,131 +160,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_security'])) {
                                             </h4>
                                         </div>
                                         <div class="panel-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Tiempo de Inactividad (segundos)</label>
-                                                        <input type="number" class="form-control" name="session_timeout"
-                                                               value="<?php echo $session_timeout; ?>" min="300" max="7200">
-                                                        <small class="text-muted">
-                                                            Tiempo máximo de inactividad antes de cerrar sesión automáticamente (300-7200 segundos)
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Duración Máxima de Sesión (horas)</label>
-                                                        <input type="number" class="form-control" name="max_session_duration"
-                                                               value="8" min="1" max="24">
-                                                        <small class="text-muted">
-                                                            Tiempo máximo que una sesión puede estar activa
-                                                        </small>
-                                                    </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">Tiempo de inactividad (minutos):</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" name="session_timeout" 
+                                                           min="5" max="120" value="<?php echo $settings['timeout_minutes']; ?>">
+                                                    <span class="help-block">
+                                                        Tiempo de inactividad antes de cerrar sesión (5-120 minutos)
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="remember_me_enabled" checked>
-                                                    Permitir función "Recordarme" en login
-                                                </label>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">Duración máxima (horas):</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" name="session_max_duration" 
+                                                           min="1" max="24" value="<?php echo $settings['max_duration_hours']; ?>">
+                                                    <span class="help-block">
+                                                        Duración máxima de la sesión (1-24 horas)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">Advertencia (minutos):</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" name="warning_minutes" 
+                                                           min="1" max="5" value="<?php echo $settings['warning_minutes']; ?>">
+                                                    <span class="help-block">
+                                                        Tiempo de advertencia antes de expirar (1-5 minutos)
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Panel 2: Intentos de Login -->
+                                    <!-- Panel 2: Recordarme -->
                                     <div class="panel panel-white">
-                                        <div class="panel-heading" style="background: #ff9800; color: white;">
+                                        <div class="panel-heading" style="background: #8e44ad; color: white;">
                                             <h4 class="panel-title">
-                                                <i class="fa fa-exclamation-triangle"></i> Protección contra Intentos Fallidos
+                                                <i class="fa fa-user-clock"></i> Función "Recordarme"
                                             </h4>
                                         </div>
                                         <div class="panel-body">
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Máximo de Intentos Fallidos</label>
-                                                        <input type="number" class="form-control" name="max_login_attempts"
-                                                               value="<?php echo $max_login_attempts; ?>" min="3" max="10">
-                                                        <small class="text-muted">Número de intentos antes de bloquear</small>
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-3 col-sm-9">
+                                                    <div class="checkbox">
+                                                        <label>
+                                                            <input type="checkbox" name="remember_me" value="1" 
+                                                                <?php echo $settings['remember_me_enabled'] ? 'checked' : ''; ?>>
+                                                            Habilitar función "Recordarme"
+                                                        </label>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Duración del Bloqueo (segundos)</label>
-                                                        <input type="number" class="form-control" name="lockout_duration"
-                                                               value="<?php echo $lockout_duration; ?>" min="300" max="3600">
-                                                        <small class="text-muted">Tiempo que la cuenta permanece bloqueada</small>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Ventana de Tiempo (segundos)</label>
-                                                        <input type="number" class="form-control" name="attempt_window"
-                                                               value="300" min="60" max="900">
-                                                        <small class="text-muted">Ventana de tiempo para contar intentos</small>
-                                                    </div>
+                                                    <span class="help-block">
+                                                        Permite a los usuarios mantener la sesión iniciada
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="notify_admin_on_lockout" checked>
-                                                    Notificar a administradores cuando se bloquea una cuenta
-                                                </label>
+                                            <div class="form-group">
+                                                <label class="col-sm-3 control-label">Duración (días):</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" name="remember_days" 
+                                                           min="1" max="90" value="<?php echo $settings['remember_me_days']; ?>">
+                                                    <span class="help-block">
+                                                        Días que durará la sesión recordada (1-90 días)
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Panel 3: Políticas Adicionales -->
-                                    <div class="panel panel-white">
-                                        <div class="panel-heading" style="background: #673ab7; color: white;">
-                                            <h4 class="panel-title">
-                                                <i class="fa fa-shield"></i> Políticas de Seguridad Adicionales
-                                            </h4>
+                                    <!-- Botón de guardar -->
+                                    <div class="form-group">
+                                        <div class="col-sm-offset-3 col-sm-9">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fa fa-save"></i> Guardar Configuración
+                                            </button>
                                         </div>
-                                        <div class="panel-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Expiración de Contraseñas (días)</label>
-                                                        <input type="number" class="form-control" name="password_expiry_days"
-                                                               value="<?php echo $password_expiry_days; ?>" min="0" max="365">
-                                                        <small class="text-muted">0 = sin expiración</small>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>Historial de Contraseñas</label>
-                                                        <input type="number" class="form-control" name="password_history"
-                                                               value="5" min="0" max="10">
-                                                        <small class="text-muted">No permitir reutilizar las últimas N contraseñas</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="require_2fa" checked>
-                                                    Requerir autenticación de dos factores (2FA) para administradores
-                                                </label>
-                                            </div>
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="ip_whitelist_enabled">
-                                                    Habilitar lista blanca de IPs para acceso administrativo
-                                                </label>
-                                            </div>
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="log_all_access" checked>
-                                                    Registrar todos los accesos al sistema (éxitos y fallos)
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="text-right">
-                                        <button type="submit" name="update_security" class="btn btn-primary btn-lg">
-                                            <i class="fa fa-save"></i> Guardar Configuración de Seguridad
-                                        </button>
                                     </div>
                                 </form>
                             </div>

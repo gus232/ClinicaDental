@@ -101,16 +101,19 @@ if (isset($_POST['action']) && $_POST['action'] == 'update_role' && hasPermissio
     }
 }
 
-// ELIMINAR ROL
+// ELIMINAR ROL (desactivar)
 if (isset($_GET['action']) && $_GET['action'] == 'delete_role' && hasPermission('manage_roles')) {
     $role_id = (int)$_GET['id'];
 
-    // Verificar que no sea un rol del sistema
+    // Verificar que no sea un rol protegido del sistema
     $check = mysqli_query($con, "SELECT role_name FROM roles WHERE id = $role_id");
     $role = mysqli_fetch_assoc($check);
 
-    if (in_array($role['role_name'], ['super_admin', 'admin', 'doctor', 'patient'])) {
-        $error_msg = "No puedes eliminar roles del sistema";
+    // Roles protegidos que no se pueden eliminar
+    $protected_roles = ['super_admin', 'admin', 'doctor', 'patient', 'admin_tecnico', 'admin_operativo', 'oficial_seguridad_informacion'];
+
+    if (in_array($role['role_name'], $protected_roles)) {
+        $error_msg = "No puedes eliminar roles protegidos del sistema";
     } else {
         $sql = "UPDATE roles SET status = 'inactive' WHERE id = $role_id";
         if (mysqli_query($con, $sql)) {
@@ -118,6 +121,18 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_role' && hasPermission(
         } else {
             $error_msg = "Error al desactivar rol";
         }
+    }
+}
+
+// REACTIVAR ROL
+if (isset($_GET['action']) && $_GET['action'] == 'activate_role' && hasPermission('manage_roles')) {
+    $role_id = (int)$_GET['id'];
+
+    $sql = "UPDATE roles SET status = 'active' WHERE id = $role_id";
+    if (mysqli_query($con, $sql)) {
+        $success_msg = "Rol reactivado exitosamente";
+    } else {
+        $error_msg = "Error al reactivar rol";
     }
 }
 
@@ -933,14 +948,17 @@ $audit_records = mysqli_query($con, $audit_sql);
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="stats-card" style="border-left: 4px solid #2196F3;">
-                                <div class="icon" style="color: #2196F3;">
-                                    <i class="fa fa-folder"></i>
+                            <div class="stats-card" style="border-left: 4px solid #f44336;">
+                                <div class="icon" style="color: #f44336;">
+                                    <i class="fa fa-times-circle"></i>
                                 </div>
-                                <div class="value" style="color: #2196F3;">
-                                    <?php echo count($permissions_by_category); ?>
+                                <div class="value" style="color: #f44336;">
+                                    <?php
+                                    $inactive_roles = array_filter($all_roles, function($r) { return $r['status'] === 'inactive'; });
+                                    echo count($inactive_roles);
+                                    ?>
                                 </div>
-                                <div class="label">Categorías</div>
+                                <div class="label">Roles Inactivos</div>
                             </div>
                         </div>
                     </div>
@@ -1004,8 +1022,9 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                     <?php
                                                     $role_perms = $rbac->getRolePermissions($role['id']);
                                                     $perm_count = count($role_perms);
+                                                    $is_inactive = $role['status'] === 'inactive';
                                                     ?>
-                                                    <tr>
+                                                    <tr<?php echo $is_inactive ? ' style="background-color: #f5f5f5; opacity: 0.7;"' : ''; ?>>
                                                         <td><?php echo $role['id']; ?></td>
                                                         <td>
                                                             <strong><?php echo htmlspecialchars($role['display_name']); ?></strong><br>
@@ -1044,17 +1063,34 @@ $audit_records = mysqli_query($con, $audit_sql);
                                                                 </button>
                                                                 <?php endif; ?>
 
-                                                                <?php if (hasPermission('manage_roles') && !in_array($role['role_name'], ['super_admin', 'admin', 'doctor', 'patient'])): ?>
-                                                                <button type="button"
-                                                                        class="btn btn-danger btn-xs"
-                                                                        onclick="deleteRole(<?php echo $role['id']; ?>, '<?php echo htmlspecialchars($role['display_name']); ?>')"
-                                                                        title="Eliminar">
-                                                                    <i class="fa fa-trash"></i>
-                                                                </button>
+                                                                <?php
+                                                                // Roles protegidos que no se pueden eliminar
+                                                                $protected_roles = ['super_admin', 'admin', 'doctor', 'patient', 'admin_tecnico', 'admin_operativo', 'oficial_seguridad_informacion'];
+                                                                $is_protected = in_array($role['role_name'], $protected_roles);
+                                                                ?>
+
+                                                                <?php if ($role['status'] === 'active'): ?>
+                                                                    <?php if (hasPermission('manage_roles') && !$is_protected): ?>
+                                                                    <button type="button"
+                                                                            class="btn btn-danger btn-xs"
+                                                                            onclick="deleteRole(<?php echo $role['id']; ?>, '<?php echo htmlspecialchars($role['display_name']); ?>')"
+                                                                            title="Desactivar">
+                                                                        <i class="fa fa-trash"></i>
+                                                                    </button>
+                                                                    <?php else: ?>
+                                                                    <button type="button" class="btn btn-default btn-xs" disabled title="Rol protegido del sistema">
+                                                                        <i class="fa fa-lock"></i>
+                                                                    </button>
+                                                                    <?php endif; ?>
                                                                 <?php else: ?>
-                                                                <button type="button" class="btn btn-default btn-xs" disabled title="Rol del sistema">
-                                                                    <i class="fa fa-lock"></i>
-                                                                </button>
+                                                                    <?php if (hasPermission('manage_roles')): ?>
+                                                                    <button type="button"
+                                                                            class="btn btn-success btn-xs"
+                                                                            onclick="activateRole(<?php echo $role['id']; ?>, '<?php echo htmlspecialchars($role['display_name']); ?>')"
+                                                                            title="Reactivar">
+                                                                        <i class="fa fa-check"></i>
+                                                                    </button>
+                                                                    <?php endif; ?>
                                                                 <?php endif; ?>
                                                             </div>
                                                         </td>
@@ -1822,6 +1858,24 @@ $audit_records = mysqli_query($con, $audit_sql);
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = 'manage-roles.php?action=delete_role&id=' + roleId;
+                }
+            });
+        }
+
+        // Reactivar rol inactivo
+        function activateRole(roleId, roleName) {
+            Swal.fire({
+                title: '¿Reactivar rol?',
+                html: 'Vas a reactivar el rol: <br><strong>' + roleName + '</strong>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, reactivar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'manage-roles.php?action=activate_role&id=' + roleId;
                 }
             });
         }
